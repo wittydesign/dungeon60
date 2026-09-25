@@ -171,6 +171,10 @@ button[disabled]{opacity:.4;cursor:default;}
           <div><b>攻撃力</b><span id="hAtk">10</span></div>
           <div><b>武器</b><span id="hWep" style="font-size:15px">木の剣</span></div>
           <div><b>防具</b><span id="hArm" style="font-size:15px">布の服</span></div>
+          <div><b>会心</b><span id="hCrit">0%</span></div>
+          <div><b>攻撃速度</b><span id="hAspd">+0%</span></div>
+          <div><b>兜 / 手袋</b><span id="hG1" style="font-size:13px">なし / なし</span></div>
+          <div><b>靴 / お守り</b><span id="hG2" style="font-size:13px">なし / なし</span></div>
         </div>
       </div>
       <div class="card">
@@ -277,6 +281,16 @@ const SKILLS = {
 const SK_MAX = 10, SP_PER_LV = 3, POT_PRICE = 30, POT_HEAL = 0.4, POT_DROP = 0.08;
 const skCd = l => Math.max(4, Math.round((11-0.7*l)*10)/10);
 const fanN = l => l>=7?5:l>=4?4:3;
+const GEAR_NEED = [{slime:6,wing:3},{slime:14,wing:10,horn:1},{horn:4,slime:25,wing:25}];
+const GEAR = {
+  helm:[{id:"h1",name:"革の兜",hp:15,atk:2,color:"#C8A06A"},{id:"h2",name:"鉄の兜",hp:35,atk:4,color:"#D7DCEB"},{id:"h3",name:"竜の兜",hp:70,atk:8,color:"#FF8A5B"}],
+  glove:[{id:"g1",name:"革の手袋",aspd:0.08,color:"#C8A06A"},{id:"g2",name:"鉄の手袋",aspd:0.15,color:"#D7DCEB"},{id:"g3",name:"竜の手袋",aspd:0.25,color:"#FF8A5B"}],
+  boot:[{id:"b1",name:"革の靴",mspd:0.06,color:"#C8A06A"},{id:"b2",name:"鉄の靴",mspd:0.12,color:"#D7DCEB"},{id:"b3",name:"竜の靴",mspd:0.2,color:"#FF8A5B"}],
+  charm:[{id:"c1",name:"苔のお守り",crit:0.08,color:"#7BE495"},{id:"c2",name:"水晶のお守り",crit:0.15,color:"#B58CFF"},{id:"c3",name:"竜のお守り",crit:0.25,color:"#F5C542"}],
+};
+const GEAR_SLOTS = {helm:"兜",glove:"手袋",boot:"靴",charm:"お守り"};
+const GEAR_ALL = []; for(const slot in GEAR) GEAR[slot].forEach((g,i)=>{ g.kind="g"; g.slot=slot; g.need=GEAR_NEED[i]; GEAR_ALL.push(g); });
+const gearDesc = g => g.slot==="helm"?"HP+"+g.hp+" 攻撃+"+g.atk : g.slot==="glove"?"攻撃速度+"+Math.round(g.aspd*100)+"%" : g.slot==="boot"?"移動+"+Math.round(g.mspd*100)+"%" : "会心"+Math.round(g.crit*100)+"%";
 const CLASSES = {
   sword:{name:"剣士", hp:100, atk:10, spd:205, cd:0.26, color:"#5EEAD4", weapons:SWORDS},
   mage:{name:"魔法使い", hp:70, atk:12, spd:175, cd:0.6, color:"#B58CFF", weapons:STAVES},
@@ -304,9 +318,9 @@ const floorName = f => FLOORS[(f-1)%FLOORS.length]+(f>FLOORS.length?" 奥"+(Math
 
 // ---------- save ----------
 const KEY = "dgn60_save_v1";
-const def = ()=>({lv:1, xp:0, mats:{slime:0,wing:0,horn:0}, cls:"sword", wep:{sword:"w0",mage:"m0"}, armor:"a0", owned:{w0:1,m0:1,a0:1}, maxFloor:1, floor:1, runs:0, seenTitle:0, picked:0, sk:{}, spUsed:0, gold:0, potions:0});
+const def = ()=>({lv:1, xp:0, mats:{slime:0,wing:0,horn:0}, cls:"sword", wep:{sword:"w0",mage:"m0"}, armor:"a0", owned:{w0:1,m0:1,a0:1}, maxFloor:1, floor:1, runs:0, seenTitle:0, picked:0, sk:{}, spUsed:0, gold:0, potions:0, gear:{helm:null,glove:null,boot:null,charm:null}});
 let S = def();
-function load(){ try{ const j = JSON.parse(localStorage.getItem(KEY)); if(j&&j.lv){ S = Object.assign(def(), j); if(!S.wep){ S.wep={sword:j.weapon||"w0",mage:"m0"}; } S.wep=Object.assign({sword:"w0",mage:"m0"},S.wep); S.owned=Object.assign({w0:1,m0:1,a0:1},S.owned); if(!CLASSES[S.cls])S.cls="sword"; S.sk=S.sk||{}; S.spUsed=S.spUsed||0; S.gold=S.gold||0; S.potions=S.potions||0; if(S.runs>0&&!S.picked)S.picked=1; } }catch(e){} }
+function load(){ try{ const j = JSON.parse(localStorage.getItem(KEY)); if(j&&j.lv){ S = Object.assign(def(), j); if(!S.wep){ S.wep={sword:j.weapon||"w0",mage:"m0"}; } S.wep=Object.assign({sword:"w0",mage:"m0"},S.wep); S.owned=Object.assign({w0:1,m0:1,a0:1},S.owned); if(!CLASSES[S.cls])S.cls="sword"; S.sk=S.sk||{}; S.spUsed=S.spUsed||0; S.gold=S.gold||0; S.potions=S.potions||0; if(S.runs>0&&!S.picked)S.picked=1; S.gear=Object.assign({helm:null,glove:null,boot:null,charm:null},S.gear||{}); } }catch(e){} }
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
 load();
 const xpNeed = lv => Math.floor(20 * Math.pow(1.35, lv-1));
@@ -315,9 +329,13 @@ const wep = ()=>cls().weapons.find(w=>w.id===S.wep[S.cls])||cls().weapons[0];
 const arm = ()=>ARMORS.find(a=>a.id===S.armor)||ARMORS[0];
 const sk = id => S.sk[id]||0;
 const spLeft = ()=>Math.max(0,(S.lv-1)*SP_PER_LV-S.spUsed);
-const maxHp = ()=>cls().hp + (S.lv-1)*10 + arm().hp + 12*sk("wall");
-const atkPow = ()=>cls().atk + (S.lv-1)*2 + wep().atk + 2*sk("power") + 2*sk("mana");
-const moveSpd = ()=>cls().spd*(1+0.04*sk("swift"));
+const gear = slot => GEAR[slot].find(g=>g.id===S.gear[slot])||null;
+const gv = (slot,key) => { const g=gear(slot); return g?g[key]:0; };
+const maxHp = ()=>cls().hp + (S.lv-1)*10 + arm().hp + 12*sk("wall") + gv("helm","hp");
+const atkPow = ()=>cls().atk + (S.lv-1)*2 + wep().atk + 2*sk("power") + 2*sk("mana") + gv("helm","atk");
+const atkCd = ()=>cls().cd*(1-gv("glove","aspd"));
+const moveSpd = ()=>cls().spd*(1+0.04*sk("swift")+gv("boot","mspd"));
+const critRate = ()=>gv("charm","crit");
 const activeSkill = ()=>SKILLS[S.cls][0];
 
 // ---------- dom ----------
@@ -351,23 +369,26 @@ function renderHome(){
   $("hLv").textContent=S.lv; $("hXp").textContent=S.xp+" / "+xpNeed(S.lv);
   $("hHp").textContent=maxHp(); $("hAtk").textContent=atkPow();
   $("hWep").textContent=wep().name; $("hArm").textContent=arm().name;
+  $("hCrit").textContent=Math.round(critRate()*100)+"%"; $("hAspd").textContent="+"+Math.round(gv("glove","aspd")*100)+"%";
+  const gn=slot=>gear(slot)?gear(slot).name:"なし"; $("hG1").textContent=gn("helm")+" / "+gn("glove"); $("hG2").textContent=gn("boot")+" / "+gn("charm");
   $("hFloor").textContent=floorName(S.floor); $("hMax").textContent=S.maxFloor;
   $("fDown").disabled = S.floor<=1; $("fUp").disabled = S.floor>=S.maxFloor;
   const m=$("hMat"); m.innerHTML="";
   for(const k in MATS){ const c=document.createElement("span"); c.className="chip"; c.innerHTML='<i class="dot" style="background:'+MATS[k].color+'"></i>'+MATS[k].name+' <b>'+S.mats[k]+'</b>'; m.appendChild(c); }
   const cr=$("craft"); cr.innerHTML="";
-  const list=[...cls().weapons, ...ARMORS];
+  const list=[...cls().weapons, ...ARMORS, ...GEAR_ALL];
   for(const it of list){
     const row=document.createElement("div"); row.className="recipe";
-    const owned=!!S.owned[it.id]; const equipped = (it.kind==="w"?S.wep[S.cls]:S.armor)===it.id;
+    const owned=!!S.owned[it.id]; const equipped = (it.kind==="w"?S.wep[S.cls]:it.kind==="a"?S.armor:S.gear[it.slot])===it.id;
     const can = Object.keys(it.need).every(k=>S.mats[k]>=it.need[k]);
     const needTxt = Object.keys(it.need).map(k=>'<span class="'+(S.mats[k]>=it.need[k]?"ok":"ng")+'">'+MATS[k].name+' '+S.mats[k]+'/'+it.need[k]+'</span>').join("、");
-    const eff = it.kind==="a" ? "HP+"+it.hp : S.cls==="mage" ? "攻撃+"+it.atk+" 射程"+it.len+" 太さ"+it.wid : "攻撃+"+it.atk+" 間合い"+it.len;
+    const eff = it.kind==="g" ? GEAR_SLOTS[it.slot]+" "+gearDesc(it) : it.kind==="a" ? "HP+"+it.hp : S.cls==="mage" ? "攻撃+"+it.atk+" 射程"+it.len+" 太さ"+it.wid : "攻撃+"+it.atk+" 間合い"+it.len;
     row.innerHTML='<div><div class="name"><i class="dot" style="background:'+it.color+';margin-right:6px"></i>'+it.name+' <span style="font-size:12px;color:var(--ink2)">'+eff+'</span></div><div class="need">'+(owned?"作成済み":needTxt||"最初から持っている")+'</div></div>';
     const b=document.createElement("button"); b.className="small"+(owned?" ghost":"");
+    const equip=()=>{ if(it.kind==="w")S.wep[S.cls]=it.id; else if(it.kind==="a")S.armor=it.id; else S.gear[it.slot]=it.id; };
     if(equipped){ b.textContent="装備中"; b.disabled=true; }
-    else if(owned){ b.textContent="装備"; b.onclick=()=>{ if(it.kind==="w")S.wep[S.cls]=it.id; else S.armor=it.id; save(); renderHome(); toast(it.name+"を装備"); }; }
-    else { b.textContent="作る"; b.disabled=!can; b.onclick=()=>{ for(const k in it.need)S.mats[k]-=it.need[k]; S.owned[it.id]=1; if(it.kind==="w")S.wep[S.cls]=it.id; else S.armor=it.id; save(); renderHome(); toast(it.name+"を作った!"); }; }
+    else if(owned){ b.textContent="装備"; b.onclick=()=>{ equip(); save(); renderHome(); toast(it.name+"を装備"); }; }
+    else { b.textContent="作る"; b.disabled=!can; b.onclick=()=>{ for(const k in it.need)S.mats[k]-=it.need[k]; S.owned[it.id]=1; equip(); save(); renderHome(); toast(it.name+"を作った!"); }; }
     row.appendChild(b); cr.appendChild(row);
   }
 }
@@ -441,7 +462,7 @@ function dropLoot(e){
   if(e.type==="boss"){ for(let i=0;i<3;i++)G.loot.push({k:Math.random()<.5?"slime":"wing",x:e.x+(Math.random()-.5)*60,y:e.y+(Math.random()-.5)*60,t:0}); }
 }
 function burst(x,y,c,n){ for(let i=0;i<n;i++){ const a=Math.random()*Math.PI*2,s=40+Math.random()*120; G.parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,t:0.4+Math.random()*.3,c}); } }
-function hitEnemy(e,pow,ang,kb){ e.hp-=pow; e.hit=0.12; G.dmgs.push({x:e.x+(Math.random()-.5)*12,y:e.y-e.r-6,v:pow,t:0.7,big:pow>=atkPow()*1.5}); burst(e.x,e.y,e.type==="boss"?"#F04A5A":"#FFFFFF",4); const k=e.type==="boss"?Math.min(kb,4):kb; e.x+=Math.cos(ang)*k; e.y+=Math.sin(ang)*k; }
+function hitEnemy(e,pow,ang,kb){ const crit=Math.random()<critRate(); if(crit)pow=Math.round(pow*1.5); e.hp-=pow; e.hit=0.12; G.dmgs.push({x:e.x+(Math.random()-.5)*12,y:e.y-e.r-6,v:pow,t:0.7,big:crit||pow>=atkPow()*1.5}); burst(e.x,e.y,e.type==="boss"?"#F04A5A":"#FFFFFF",4); const k=e.type==="boss"?Math.min(kb,4):kb; e.x+=Math.cos(ang)*k; e.y+=Math.sin(ang)*k; }
 function targets(){ return G.boss?[...G.enemies,G.boss]:G.enemies; }
 function nearest(x,y,maxD){ let best=null,bd=maxD; for(const e of targets()){ const d=Math.hypot(e.x-x,e.y-y)-e.r; if(d<bd){ bd=d; best=e; } } return best; }
 function beam(x,y,ang,len,wid,pow){
@@ -487,7 +508,7 @@ function update(dt){
   if(G.ending){ wantAtk=false; atkHeld=false; }
   if(atkHeld&&p.atkCd<=0)wantAtk=true;
   if(wantAtk&&p.atkCd<=0){
-    p.atkCd=C.cd;
+    p.atkCd=atkCd();
     const aimR = G.cls==="sword" ? p.r+w.len+60 : w.len+40;
     const tg=nearest(p.x,p.y,aimR); if(tg){ p.face=Math.atan2(tg.y-p.y,tg.x-p.x); }
     if(G.cls==="sword"){
@@ -641,14 +662,14 @@ function endRun(reason){
   if(!rows.length){ ll.innerHTML='<span style="color:var(--ink2)">なし</span>'; }
   const canNow = craftableIds().filter(id=>!canBefore.includes(id));
   $("rCraft").hidden = canNow.length===0; const cl=$("rCraftList"); cl.innerHTML="";
-  for(const id of canNow){ const it=[...SWORDS,...STAVES,...ARMORS].find(x=>x.id===id); const t=document.createElement("span"); t.className="tag"; t.textContent=it.name+"が作れる!"; cl.appendChild(t); }
+  for(const id of canNow){ const it=[...SWORDS,...STAVES,...ARMORS,...GEAR_ALL].find(x=>x.id===id); const t=document.createElement("span"); t.className="tag"; t.textContent=it.name+"が作れる!"; cl.appendChild(t); }
   $("bHome").className = canNow.length? "big" : "ghost"; $("bHome").textContent = canNow.length? "工房へ" : "広場へ";
   $("bAgain").className = canNow.length? "ghost" : "big";
   $("result").hidden=false; draw();
   animateResult(G.kills, G.before, {lv:S.lv,xp:S.xp}, rows, before!==S.lv);
 }
 
-function craftableIds(){ return [...SWORDS,...STAVES,...ARMORS].filter(it=>!S.owned[it.id]&&Object.keys(it.need).every(k=>S.mats[k]>=it.need[k])).map(it=>it.id); }
+function craftableIds(){ return [...SWORDS,...STAVES,...ARMORS,...GEAR_ALL].filter(it=>!S.owned[it.id]&&Object.keys(it.need).every(k=>S.mats[k]>=it.need[k])).map(it=>it.id); }
 let animTimers=[];
 function animateResult(kills, from, to, rows, lvup){
   for(const t of animTimers)clearTimeout(t); animTimers=[];
