@@ -70,7 +70,7 @@ button[disabled]{opacity:.4;cursor:default;}
 .pickcard.on{border-color:var(--gold);background:var(--panel2);}
 .pickcard .nm{font-size:20px;font-weight:800;}
 .pickcard .ds{font-size:13px;color:var(--ink2);margin-top:2px;}
-.pickcard canvas{width:48px;height:64px;image-rendering:pixelated;flex:none;background:rgba(0,0,0,.25);border-radius:8px;}
+.pickcard canvas{width:72px;height:96px;flex:none;background:rgba(0,0,0,.25);border-radius:8px;}
 #title h1{font-size:44px;margin:0;}
 #title .sub{font-size:15px;}
 #title .tap{color:var(--gold);font-size:18px;font-weight:800;animation:pulse 1.4s ease-in-out infinite;}
@@ -144,8 +144,8 @@ button[disabled]{opacity:.4;cursor:default;}
   <div class="screen" id="pick" hidden>
     <div class="wrap">
       <div><h1>職業を選ぶ</h1><p class="sub">一度選ぶと変えられない。転職には転職チケットが必要になる。</p></div>
-      <button class="pickcard" id="pSword"><canvas id="pcSword" width="48" height="64"></canvas><div><div class="nm">剣士</div><div class="ds">近距離。前方を薙ぎ払い、押し返す。HPが高く、殴り合いに強い。技は回転斬り。</div></div></button>
-      <button class="pickcard" id="pMage"><canvas id="pcMage" width="48" height="64"></canvas><div><div class="nm">魔法使い</div><div class="ds">遠距離。貫く光線で群れをまとめて倒す。HPは低め。技は三連光線。</div></div></button>
+      <button class="pickcard" id="pSword"><canvas id="pcSword" width="216" height="288"></canvas><div><div class="nm">剣士</div><div class="ds">近距離。前方を薙ぎ払い、押し返す。HPが高く、殴り合いに強い。技は回転斬り。</div></div></button>
+      <button class="pickcard" id="pMage"><canvas id="pcMage" width="216" height="288"></canvas><div><div class="nm">魔法使い</div><div class="ds">遠距離。貫く光線で群れをまとめて倒す。HPは低め。技は三連光線。</div></div></button>
       <button class="big" id="bPick" disabled>この職業で始める</button>
     </div>
   </div>
@@ -162,7 +162,7 @@ button[disabled]{opacity:.4;cursor:default;}
       </div>
       <div class="card">
         <div class="row" style="margin-bottom:10px">
-          <canvas id="avatar" width="144" height="192" style="width:72px;height:96px;image-rendering:pixelated;flex:none;background:var(--panel2);border-radius:10px"></canvas>
+          <canvas id="avatar" width="288" height="384" style="width:96px;height:128px;flex:none;background:var(--panel2);border-radius:10px"></canvas>
           <div style="flex:1"><b style="font-size:12px;color:var(--ink2)">ゲート越え</b><div style="font-size:20px;font-weight:800">Lv <span id="hLv">1</span></div></div>
           <div style="text-align:right"><b style="font-size:12px;color:var(--ink2)">次のレベルまで</b><div id="hXp" style="font-weight:800;font-variant-numeric:tabular-nums">0 / 20</div></div>
         </div>
@@ -303,11 +303,11 @@ for(const a of ["a0","a1","a2","a3","a4"]) SPR_LIST["armor_"+a]="assets/armor_"+
 for(const w of ["w0","w1","w2","w3","w4","m0","m1","m2","m3","m4"]) SPR_LIST["weapon_"+w]="assets/weapon_"+w+".png";
 const AV_W=48, AV_H=64;
 for(const k in SPR_LIST){ const im=new Image(); im.onload=()=>{ SPR[k]=im; renderAvatar(); if(!$("pick").hidden)drawPick(); }; im.onerror=()=>{}; im.src=SPR_LIST[k]; }
-function spr(key,x,y,size,flip,c){ c=c||ctx; const im=SPR[key]; if(!im)return false; c.save(); c.imageSmoothingEnabled=false; c.translate(x,y); if(flip)c.scale(-1,1); c.drawImage(im,-size/2,-size/2,size,size); c.restore(); return true; }
+function spr(key,x,y,size,flip,c){ c=c||ctx; const im=SPR[key]; if(!im)return false; c.save(); c.imageSmoothingEnabled=true; c.imageSmoothingQuality="high"; c.translate(x,y); if(flip)c.scale(-1,1); c.drawImage(im,-size/2,-size/2,size,size); c.restore(); return true; }
 // layered avatar: body -> hair -> armor -> weapon. Returns false when the body sprite is missing.
 function avatar(c,x,y,scale,flip,clsId,wepId,armId){
   const bodyKey = SPR["body_"+S.body] ? "body_"+S.body : (SPR.body_a ? "body_a" : null); if(!bodyKey)return false; const w=AV_W*scale, h=AV_H*scale;
-  c.save(); c.imageSmoothingEnabled=false; c.translate(x,y); if(flip)c.scale(-1,1);
+  c.save(); c.imageSmoothingEnabled=true; c.imageSmoothingQuality="high"; c.translate(x,y); if(flip)c.scale(-1,1);
   for(const k of [bodyKey,"hair","armor_"+armId,"weapon_"+wepId]){ const im=SPR[k]; if(im)c.drawImage(im,-w/2,-h/2,w,h); }
   c.restore(); return true;
 }
@@ -346,7 +346,7 @@ function toast(t){ toastEl.textContent=t; toastEl.classList.add("show"); clearTi
 
 function renderAvatar(){
   const c=$("avatar"); if(!c)return; const x=c.getContext("2d"); x.clearRect(0,0,c.width,c.height);
-  if(avatar(x,c.width/2,c.height/2,3,false,S.cls,S.wep[S.cls],S.armor))return;
+  if(avatar(x,c.width/2,c.height/2,6,false,S.cls,S.wep[S.cls],S.armor))return;
   // fallback: simple figure in class/armor colors
   const a=arm(), w=wep(); x.fillStyle=S.cls==="mage"?"#B58CFF":a.color; x.beginPath(); x.arc(72,96,34,0,7); x.fill();
   x.strokeStyle=w.color; x.lineWidth=10; x.lineCap="round"; x.beginPath(); x.moveTo(90,110); x.lineTo(90+ (S.cls==="mage"?40:w.len*1.6),60); x.stroke();
@@ -395,7 +395,7 @@ function renderHome(){
 $("bBuyPot").onclick=()=>{ if(S.gold<POT_PRICE)return; S.gold-=POT_PRICE; S.potions++; save(); renderHome(); toast("傷薬を買った"); };
 $("bJob").onclick=()=>toast("転職チケットは準備中");
 let pickSel=null;
-function drawPick(){ for(const [id,c] of [["pcSword","sword"],["pcMage","mage"]]){ const cv2=$(id), x=cv2.getContext("2d"); x.clearRect(0,0,48,64); if(!avatar(x,24,32,1,false,c,CLASSES[c].weapons[0].id,"a0")){ x.fillStyle=CLASSES[c].color; x.beginPath(); x.arc(24,34,12,0,7); x.fill(); } } }
+function drawPick(){ for(const [id,c] of [["pcSword","sword"],["pcMage","mage"]]){ const cv2=$(id), x=cv2.getContext("2d"); x.clearRect(0,0,216,288); if(!avatar(x,108,144,4.5,false,c,CLASSES[c].weapons[0].id,"a0")){ x.fillStyle=CLASSES[c].color; x.beginPath(); x.arc(108,150,50,0,7); x.fill(); } } }
 $("pSword").onclick=()=>{ pickSel="sword"; $("pSword").classList.add("on"); $("pMage").classList.remove("on"); $("bPick").disabled=false; };
 $("pMage").onclick=()=>{ pickSel="mage"; $("pMage").classList.add("on"); $("pSword").classList.remove("on"); $("bPick").disabled=false; };
 $("bPick").onclick=()=>{ if(!pickSel)return; S.cls=pickSel; S.picked=1; save(); $("pick").hidden=true; $("home").hidden=false; renderHome(); toast(cls().name+"として始める"); };
@@ -614,7 +614,7 @@ function draw(){
     const flip = Math.cos(p.face)<0;
     if(G.cls==="mage"){ ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.face); ctx.strokeStyle="rgba(181,140,255,.18)"; ctx.lineWidth=w.wid*2; ctx.beginPath(); ctx.moveTo(p.r+10,0); ctx.lineTo(p.r+10+w.len,0); ctx.stroke(); ctx.restore(); }
     ctx.fillStyle="rgba(0,0,0,.35)"; ctx.beginPath(); ctx.ellipse(p.x,p.y+22,16,6,0,0,7); ctx.fill();
-    avatar(ctx,p.x,p.y-12,1.25,flip,G.cls,w.id,a.id);
+    avatar(ctx,p.x,p.y-14,1.35,flip,G.cls,w.id,a.id);
     if(G.cls==="sword"&&p.swing>0){ ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.face); ctx.strokeStyle="rgba(255,255,255,.5)"; ctx.lineWidth=4; ctx.beginPath(); ctx.arc(0,0,p.r+w.len,-1.05,1.05); ctx.stroke(); ctx.restore(); }
   }
   else if(!blink){ ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.face);
