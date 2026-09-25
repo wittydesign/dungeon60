@@ -134,7 +134,8 @@ button[disabled]{opacity:.4;cursor:default;}
       </div>
       <div class="card">
         <div class="row" style="margin-bottom:10px">
-          <div><b style="font-size:12px;color:var(--ink2)">冒険者</b><div style="font-size:20px;font-weight:800">Lv <span id="hLv">1</span></div></div>
+          <canvas id="avatar" width="144" height="192" style="width:72px;height:96px;image-rendering:pixelated;flex:none;background:var(--panel2);border-radius:10px"></canvas>
+          <div style="flex:1"><b style="font-size:12px;color:var(--ink2)">冒険者</b><div style="font-size:20px;font-weight:800">Lv <span id="hLv">1</span></div></div>
           <div style="text-align:right"><b style="font-size:12px;color:var(--ink2)">次のレベルまで</b><div id="hXp" style="font-weight:800;font-variant-numeric:tabular-nums">0 / 20</div></div>
         </div>
         <div class="stat">
@@ -230,9 +231,19 @@ const CLASSES = {
 const RUN_TIME = 60, BOSS_AT = 15, BUFF_PER_KILL = 0.03, BUFF_MAX = 0.6;
 // ---------- sprites (optional PNGs under assets/; falls back to shapes) ----------
 const SPR = {};
-const SPR_LIST = {player_sword:"assets/player_sword.png", player_mage:"assets/player_mage.png", enemy_slime:"assets/enemy_slime.png", enemy_bat:"assets/enemy_bat.png", enemy_archer:"assets/enemy_archer.png", boss_horn:"assets/boss_horn.png", mat_slime:"assets/mat_slime.png", mat_wing:"assets/mat_wing.png", mat_horn:"assets/mat_horn.png", tile_moss:"assets/tile_moss.png", wall_moss:"assets/wall_moss.png"};
-for(const k in SPR_LIST){ const im=new Image(); im.onload=()=>{ SPR[k]=im; }; im.onerror=()=>{}; im.src=SPR_LIST[k]; }
-function spr(key,x,y,size,flip){ const im=SPR[key]; if(!im)return false; ctx.save(); ctx.imageSmoothingEnabled=false; ctx.translate(x,y); if(flip)ctx.scale(-1,1); ctx.drawImage(im,-size/2,-size/2,size,size); ctx.restore(); return true; }
+const SPR_LIST = {body:"assets/body.png", hair:"assets/hair.png", enemy_slime:"assets/enemy_slime.png", enemy_bat:"assets/enemy_bat.png", enemy_archer:"assets/enemy_archer.png", boss_horn:"assets/boss_horn.png", mat_slime:"assets/mat_slime.png", mat_wing:"assets/mat_wing.png", mat_horn:"assets/mat_horn.png", tile_moss:"assets/tile_moss.png", wall_moss:"assets/wall_moss.png"};
+for(const a of ["a0","a1","a2","a3","a4"]) SPR_LIST["armor_"+a]="assets/armor_"+a+".png";
+for(const w of ["w0","w1","w2","w3","w4","m0","m1","m2","m3","m4"]) SPR_LIST["weapon_"+w]="assets/weapon_"+w+".png";
+const AV_W=48, AV_H=64;
+for(const k in SPR_LIST){ const im=new Image(); im.onload=()=>{ SPR[k]=im; renderAvatar(); }; im.onerror=()=>{}; im.src=SPR_LIST[k]; }
+function spr(key,x,y,size,flip,c){ c=c||ctx; const im=SPR[key]; if(!im)return false; c.save(); c.imageSmoothingEnabled=false; c.translate(x,y); if(flip)c.scale(-1,1); c.drawImage(im,-size/2,-size/2,size,size); c.restore(); return true; }
+// layered avatar: body -> hair -> armor -> weapon. Returns false when the body sprite is missing.
+function avatar(c,x,y,scale,flip,clsId,wepId,armId){
+  if(!SPR.body)return false; const w=AV_W*scale, h=AV_H*scale;
+  c.save(); c.imageSmoothingEnabled=false; c.translate(x,y); if(flip)c.scale(-1,1);
+  for(const k of ["body","hair","armor_"+armId,"weapon_"+wepId]){ const im=SPR[k]; if(im)c.drawImage(im,-w/2,-h/2,w,h); }
+  c.restore(); return true;
+}
 const chgColor = k => "hsl("+Math.round(210-210*Math.min(1,k))+" 85% 58%)";
 const ECOL = {slime:"#E85D8A", wing:"#B58CFF", archer:"#FFB347"};
 const FLOORS = ["苔の洞窟","骨の回廊","水晶の間","地下水路","溶岩の底","霧の墓所","忘れられた祭壇","竜の巣"];
@@ -258,7 +269,16 @@ const cv = $("cv"), ctx = cv.getContext("2d");
 const toastEl = $("toast"); let toastT=0;
 function toast(t){ toastEl.textContent=t; toastEl.classList.add("show"); clearTimeout(toastT); toastT=setTimeout(()=>toastEl.classList.remove("show"),1200); }
 
+function renderAvatar(){
+  const c=$("avatar"); if(!c)return; const x=c.getContext("2d"); x.clearRect(0,0,c.width,c.height);
+  if(avatar(x,c.width/2,c.height/2,3,false,S.cls,S.wep[S.cls],S.armor))return;
+  // fallback: simple figure in class/armor colors
+  const a=arm(), w=wep(); x.fillStyle=S.cls==="mage"?"#B58CFF":a.color; x.beginPath(); x.arc(72,96,34,0,7); x.fill();
+  x.strokeStyle=w.color; x.lineWidth=10; x.lineCap="round"; x.beginPath(); x.moveTo(90,110); x.lineTo(90+ (S.cls==="mage"?40:w.len*1.6),60); x.stroke();
+  x.fillStyle="#14132A"; x.beginPath(); x.arc(84,88,6,0,7); x.arc(62,88,6,0,7); x.fill();
+}
 function renderHome(){
+  renderAvatar();
   $("cSword").classList.toggle("on",S.cls==="sword"); $("cMage").classList.toggle("on",S.cls==="mage");
   $("hLv").textContent=S.lv; $("hXp").textContent=S.xp+" / "+xpNeed(S.lv);
   $("hHp").textContent=maxHp(); $("hAtk").textContent=atkPow();
@@ -448,7 +468,7 @@ function draw(){
   for(const e of G.enemies){ const tele=(e.state==="windup"||e.state==="aim");
     if(tele){ ctx.strokeStyle="rgba(255,255,255,.5)"; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(e.x,e.y,e.r+5,0,7); ctx.stroke(); }
     const skey = e.type==="wing"?"enemy_bat":e.type==="archer"?"enemy_archer":"enemy_slime";
-    if(SPR[skey]){ const flip = p.x<e.x; const bob = e.type==="wing"?Math.sin(e.wob*2)*3:0; if(e.hit>0||tele){ ctx.save(); ctx.globalAlpha=0.55; } spr(skey,e.x,e.y+bob,e.type==="slime"?44:40,flip); if(e.hit>0||tele){ ctx.restore(); ctx.save(); ctx.globalCompositeOperation="lighter"; ctx.globalAlpha=e.hit>0?0.9:0.5; spr(skey,e.x,e.y+bob,e.type==="slime"?44:40,flip); ctx.restore(); }
+    if(SPR[skey]){ const flip = p.x<e.x; const bob = e.type==="wing"?Math.sin(e.wob*2)*3:0; if(e.hit>0||tele){ ctx.save(); ctx.globalAlpha=0.55; } spr(skey,e.x,e.y+bob,52,flip); if(e.hit>0||tele){ ctx.restore(); ctx.save(); ctx.globalCompositeOperation="lighter"; ctx.globalAlpha=e.hit>0?0.9:0.5; spr(skey,e.x,e.y+bob,52,flip); ctx.restore(); }
       if(e.hp<e.mhp){ ctx.fillStyle="rgba(0,0,0,.5)"; ctx.fillRect(e.x-14,e.y-e.r-12,28,4); ctx.fillStyle="#7BE495"; ctx.fillRect(e.x-14,e.y-e.r-12,28*Math.max(0,e.hp/e.mhp),4); } continue; }
     ctx.fillStyle=e.hit>0?"#FFFFFF":tele?"#FFF2C2":ECOL[e.type]; ctx.beginPath();
     if(e.type==="wing"){ const f=Math.sin(e.wob*2)*4; ctx.moveTo(e.x,e.y); ctx.lineTo(e.x-14,e.y-8+f); ctx.lineTo(e.x-6,e.y+4); ctx.lineTo(e.x,e.y+8); ctx.lineTo(e.x+6,e.y+4); ctx.lineTo(e.x+14,e.y-8+f); ctx.closePath(); }
@@ -457,7 +477,7 @@ function draw(){
     ctx.fill(); ctx.fillStyle="#14132A"; ctx.beginPath(); ctx.arc(e.x-4,e.y-2,2,0,7); ctx.arc(e.x+4,e.y-2,2,0,7); ctx.fill();
     if(e.hp<e.mhp){ ctx.fillStyle="rgba(0,0,0,.5)"; ctx.fillRect(e.x-14,e.y-e.r-10,28,4); ctx.fillStyle="#7BE495"; ctx.fillRect(e.x-14,e.y-e.r-10,28*Math.max(0,e.hp/e.mhp),4); } }
   if(G.boss){ const b=G.boss; if(b.state==="windup"){ ctx.strokeStyle="rgba(240,74,90,.5)"; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(b.x,b.y); ctx.lineTo(b.x+(p.x-b.x)*1.6,b.y+(p.y-b.y)*1.6); ctx.stroke(); }
-    if(SPR.boss_horn){ const flip=p.x<b.x; spr("boss_horn",b.x,b.y,96,flip); if(b.hit>0||b.state==="windup"){ ctx.save(); ctx.globalCompositeOperation="lighter"; ctx.globalAlpha=b.hit>0?0.9:0.4; spr("boss_horn",b.x,b.y,96,flip); ctx.restore(); } }
+    if(SPR.boss_horn){ const flip=p.x<b.x; spr("boss_horn",b.x,b.y,110,flip); if(b.hit>0||b.state==="windup"){ ctx.save(); ctx.globalCompositeOperation="lighter"; ctx.globalAlpha=b.hit>0?0.9:0.4; spr("boss_horn",b.x,b.y,110,flip); ctx.restore(); } }
     else { ctx.fillStyle=b.hit>0?"#FFFFFF":(b.state==="windup"?"#FF8A8A":"#F04A5A"); ctx.beginPath(); ctx.arc(b.x,b.y,b.r,0,7); ctx.fill();
     ctx.fillStyle="#F5C542"; ctx.beginPath(); ctx.moveTo(b.x-18,b.y-22); ctx.lineTo(b.x-26,b.y-44); ctx.lineTo(b.x-8,b.y-30); ctx.closePath(); ctx.moveTo(b.x+18,b.y-22); ctx.lineTo(b.x+26,b.y-44); ctx.lineTo(b.x+8,b.y-30); ctx.closePath(); ctx.fill();
     ctx.fillStyle="#14132A"; ctx.beginPath(); ctx.arc(b.x-11,b.y-6,4,0,7); ctx.arc(b.x+11,b.y-6,4,0,7); ctx.fill(); } }
@@ -468,11 +488,11 @@ function draw(){
   // player
   const w=wep(), a=arm(); const blink=p.inv>0&&Math.floor(performance.now()/60)%2===0;
   if(G.bossSpawned&&G.buff>0){ const k=G.buff/BUFF_MAX; ctx.strokeStyle=chgColor(k); ctx.globalAlpha=0.5+0.3*Math.sin(performance.now()/120); ctx.lineWidth=3; ctx.beginPath(); ctx.arc(p.x,p.y,p.r+8,0,7); ctx.stroke(); ctx.globalAlpha=1; }
-  const pkey = G.cls==="sword"?"player_sword":"player_mage";
-  if(!blink && SPR[pkey]){
+  if(!blink && SPR.body){
     const flip = Math.cos(p.face)<0;
     if(G.cls==="mage"){ ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.face); ctx.strokeStyle="rgba(181,140,255,.18)"; ctx.lineWidth=w.wid*2; ctx.beginPath(); ctx.moveTo(p.r+10,0); ctx.lineTo(p.r+10+w.len,0); ctx.stroke(); ctx.restore(); }
-    spr(pkey,p.x,p.y,44,flip);
+    ctx.fillStyle="rgba(0,0,0,.35)"; ctx.beginPath(); ctx.ellipse(p.x,p.y+22,16,6,0,0,7); ctx.fill();
+    avatar(ctx,p.x,p.y-12,1.25,flip,G.cls,w.id,a.id);
     if(G.cls==="sword"&&p.swing>0){ ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.face); ctx.strokeStyle="rgba(255,255,255,.5)"; ctx.lineWidth=4; ctx.beginPath(); ctx.arc(0,0,p.r+w.len,-1.05,1.05); ctx.stroke(); ctx.restore(); }
   }
   else if(!blink){ ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.face);
