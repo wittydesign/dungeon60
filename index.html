@@ -86,6 +86,17 @@ button[disabled]{opacity:.4;cursor:default;}
 .lootlist .row.in{opacity:1;transform:none;}
 @media (prefers-reduced-motion: reduce){ #title .tap{animation:none;} .lootlist .row{transition:none;opacity:1;transform:none;} }
 .cls{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.skill{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line);}
+.skill:first-of-type{border-top:0;}
+.skill .name{font-weight:800;}
+.skill .desc{font-size:12px;color:var(--ink2);}
+.skill .pips{display:inline-flex;gap:3px;margin-left:8px;vertical-align:middle;}
+.skill .pips i{width:9px;height:9px;border-radius:2px;background:rgba(255,255,255,.12);display:inline-block;}
+.skill .pips i.on{background:var(--gold);}
+.sp{font-weight:800;color:var(--gold);}
+.btn.skill{width:60px;height:60px;background:var(--gold);box-shadow:0 0 0 4px rgba(245,197,66,.25);margin-bottom:40px;position:relative;overflow:hidden;font-size:12px;}
+.btn.skill .cd{position:absolute;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);height:0%;}
+.ctrl{align-items:flex-end;}
 .cls button{display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 8px;border:2px solid transparent;}
 .cls button small{font-weight:500;font-size:11px;color:var(--ink2);}
 .cls button.on{border-color:var(--gold);background:var(--panel2);}
@@ -103,6 +114,7 @@ button[disabled]{opacity:.4;cursor:default;}
     <div class="bar boss" id="bossbar" hidden><i id="bossfill"></i></div>
   </div>
   <div class="ctrl" id="ctrl" hidden>
+    <div class="btn skill" id="bSkill" hidden><span id="bSkillName">技</span><div class="cd" id="bSkillCd"></div></div>
     <div class="btn dodge" id="bDodge">回避</div>
     <div class="btn" id="bAtk">攻撃</div>
   </div>
@@ -155,6 +167,10 @@ button[disabled]{opacity:.4;cursor:default;}
       </div>
       <button class="big" id="bStart">ゲートをくぐる</button>
       <div class="card">
+        <div class="row"><h2 style="margin:0">スキル</h2><span>残りSP <span class="sp" id="hSp">0</span></span></div>
+        <div id="skills" style="margin-top:6px"></div>
+      </div>
+      <div class="card">
         <h2 style="margin-top:0">素材ぶくろ</h2>
         <div class="mat" id="hMat"></div>
       </div>
@@ -162,7 +178,7 @@ button[disabled]{opacity:.4;cursor:default;}
         <h2 style="margin-top:0">工房</h2>
         <div id="craft"></div>
       </div>
-      <p class="example">操作: 画面左側をなぞって移動、右の攻撃と回避ボタン。攻撃は一番近い敵を自動で狙う。押しっぱなしで連続攻撃。PCはWASDまたは矢印で移動、Jで攻撃、Kで回避。</p>
+      <p class="example">操作: 画面左側をなぞって移動、右の攻撃と回避ボタン。攻撃は一番近い敵を自動で狙う。押しっぱなしで連続攻撃。PCはWASDまたは矢印で移動、Jで攻撃、Kで回避、Lで技。</p>
     </div>
   </div>
 
@@ -177,7 +193,7 @@ button[disabled]{opacity:.4;cursor:default;}
         <div class="row"><span>撃破数</span><span class="result-big" id="rKills">0</span></div>
         <div class="row"><span>獲得経験値</span><span id="rXp" style="font-weight:800">+0</span></div>
         <div class="xpwrap"><div class="lab"><span id="rLvNow">Lv 1</span><span id="rXpNow">0 / 20</span></div><div class="xpbar"><i id="rXpBar"></i></div></div>
-        <div id="rLvup" hidden style="margin-top:8px"><span class="tag">レベルアップ</span> <span id="rLvText"></span></div>
+        <div id="rLvup" hidden style="margin-top:8px"><span class="tag">レベルアップ</span> <span id="rLvText"></span> <span class="sp" id="rSp"></span></div>
       </div>
       <div class="card" id="rCraft" hidden>
         <h2 style="margin-top:0">新しく作れる</h2>
@@ -224,6 +240,19 @@ const ARMORS = [
   {id:"a3", name:"角の鎧", hp:120, color:"#F5C542", need:{horn:3, wing:15}},
   {id:"a4", name:"竜鱗の鎧", hp:200, color:"#FF8A5B", need:{horn:6, slime:30, wing:30}},
 ].map(a=>({...a,kind:"a"}));
+const SKILLS = {
+  sword:[
+    {id:"spin", name:"回転斬り", type:"active", desc:l=>"360度を薙ぎ払う。威力x"+(1.6+0.2*l).toFixed(1)+"、待ち"+(11-l)+"秒"},
+    {id:"power", name:"剛力", type:"passive", desc:l=>"攻撃力 +"+(2*l)},
+    {id:"wall", name:"鉄壁", type:"passive", desc:l=>"HP +"+(12*l)},
+  ],
+  mage:[
+    {id:"fan", name:"三連光線", type:"active", desc:l=>(l>=4?5:3)+"本の光線を同時に撃つ。待ち"+(11-l)+"秒"},
+    {id:"mana", name:"魔力", type:"passive", desc:l=>"攻撃力 +"+(2*l)},
+    {id:"swift", name:"韋駄天", type:"passive", desc:l=>"移動速度 +"+(6*l)+"%"},
+  ],
+};
+const SK_MAX = 5;
 const CLASSES = {
   sword:{name:"剣士", hp:100, atk:10, spd:205, cd:0.26, color:"#5EEAD4", weapons:SWORDS},
   mage:{name:"魔法使い", hp:70, atk:12, spd:175, cd:0.6, color:"#B58CFF", weapons:STAVES},
@@ -251,17 +280,21 @@ const floorName = f => FLOORS[(f-1)%FLOORS.length]+(f>FLOORS.length?" 奥"+(Math
 
 // ---------- save ----------
 const KEY = "dgn60_save_v1";
-const def = ()=>({lv:1, xp:0, mats:{slime:0,wing:0,horn:0}, cls:"sword", wep:{sword:"w0",mage:"m0"}, armor:"a0", owned:{w0:1,m0:1,a0:1}, maxFloor:1, floor:1, runs:0, seenTitle:0});
+const def = ()=>({lv:1, xp:0, mats:{slime:0,wing:0,horn:0}, cls:"sword", wep:{sword:"w0",mage:"m0"}, armor:"a0", owned:{w0:1,m0:1,a0:1}, maxFloor:1, floor:1, runs:0, seenTitle:0, sk:{}, spUsed:0});
 let S = def();
-function load(){ try{ const j = JSON.parse(localStorage.getItem(KEY)); if(j&&j.lv){ S = Object.assign(def(), j); if(!S.wep){ S.wep={sword:j.weapon||"w0",mage:"m0"}; } S.wep=Object.assign({sword:"w0",mage:"m0"},S.wep); S.owned=Object.assign({w0:1,m0:1,a0:1},S.owned); if(!CLASSES[S.cls])S.cls="sword"; } }catch(e){} }
+function load(){ try{ const j = JSON.parse(localStorage.getItem(KEY)); if(j&&j.lv){ S = Object.assign(def(), j); if(!S.wep){ S.wep={sword:j.weapon||"w0",mage:"m0"}; } S.wep=Object.assign({sword:"w0",mage:"m0"},S.wep); S.owned=Object.assign({w0:1,m0:1,a0:1},S.owned); if(!CLASSES[S.cls])S.cls="sword"; S.sk=S.sk||{}; S.spUsed=S.spUsed||0; } }catch(e){} }
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
 load();
 const xpNeed = lv => Math.floor(20 * Math.pow(1.35, lv-1));
 const cls = ()=>CLASSES[S.cls];
 const wep = ()=>cls().weapons.find(w=>w.id===S.wep[S.cls])||cls().weapons[0];
 const arm = ()=>ARMORS.find(a=>a.id===S.armor)||ARMORS[0];
-const maxHp = ()=>cls().hp + (S.lv-1)*10 + arm().hp;
-const atkPow = ()=>cls().atk + (S.lv-1)*2 + wep().atk;
+const sk = id => S.sk[id]||0;
+const spLeft = ()=>Math.max(0,(S.lv-1)-S.spUsed);
+const maxHp = ()=>cls().hp + (S.lv-1)*10 + arm().hp + 12*sk("wall");
+const atkPow = ()=>cls().atk + (S.lv-1)*2 + wep().atk + 2*sk("power") + 2*sk("mana");
+const moveSpd = ()=>cls().spd*(1+0.06*sk("swift"));
+const activeSkill = ()=>SKILLS[S.cls][0];
 
 // ---------- dom ----------
 const $ = id=>document.getElementById(id);
@@ -277,8 +310,18 @@ function renderAvatar(){
   x.strokeStyle=w.color; x.lineWidth=10; x.lineCap="round"; x.beginPath(); x.moveTo(90,110); x.lineTo(90+ (S.cls==="mage"?40:w.len*1.6),60); x.stroke();
   x.fillStyle="#14132A"; x.beginPath(); x.arc(84,88,6,0,7); x.arc(62,88,6,0,7); x.fill();
 }
+function renderSkills(){
+  $("hSp").textContent=spLeft(); const box=$("skills"); box.innerHTML="";
+  for(const k of SKILLS[S.cls]){ const l=sk(k.id); const row=document.createElement("div"); row.className="skill";
+    let pips='<span class="pips">'; for(let i=0;i<SK_MAX;i++)pips+='<i class="'+(i<l?"on":"")+'"></i>'; pips+='</span>';
+    row.innerHTML='<div><div class="name">'+k.name+' <span style="font-size:11px;color:var(--ink2)">'+(k.type==="active"?"技":"常時")+'</span>'+pips+'</div><div class="desc">'+(l>0?k.desc(l):(k.type==="active"?"1SPで使えるようになる":k.desc(1)+"(1SPで)"))+'</div></div>';
+    const b=document.createElement("button"); b.className="small"; b.textContent="+"; b.setAttribute("aria-label",k.name+"を上げる");
+    b.disabled = spLeft()<=0 || l>=SK_MAX;
+    b.onclick=()=>{ if(spLeft()<=0||sk(k.id)>=SK_MAX)return; S.sk[k.id]=sk(k.id)+1; S.spUsed++; save(); renderHome(); toast(k.name+" Lv"+S.sk[k.id]); };
+    row.appendChild(b); box.appendChild(row); }
+}
 function renderHome(){
-  renderAvatar();
+  renderAvatar(); renderSkills();
   $("cSword").classList.toggle("on",S.cls==="sword"); $("cMage").classList.toggle("on",S.cls==="mage");
   $("hLv").textContent=S.lv; $("hXp").textContent=S.xp+" / "+xpNeed(S.lv);
   $("hHp").textContent=maxHp(); $("hAtk").textContent=atkPow();
@@ -319,8 +362,8 @@ window.addEventListener("resize",resize); resize();
 
 // ---------- input ----------
 const keys={}; let joy={active:false,id:null,ox:0,oy:0,x:0,y:0};
-let wantAtk=false, wantDodge=false, atkHeld=false;
-window.addEventListener("keydown",e=>{ keys[e.key.toLowerCase()]=true; if(e.key===" "||e.key.toLowerCase()==="j"){ wantAtk=true; atkHeld=true; } if(e.key.toLowerCase()==="k"||e.key==="Shift")wantDodge=true; });
+let wantAtk=false, wantDodge=false, atkHeld=false, wantSkill=false;
+window.addEventListener("keydown",e=>{ keys[e.key.toLowerCase()]=true; if(e.key===" "||e.key.toLowerCase()==="j"){ wantAtk=true; atkHeld=true; } if(e.key.toLowerCase()==="k"||e.key==="Shift")wantDodge=true; if(e.key.toLowerCase()==="l")wantSkill=true; });
 window.addEventListener("keyup",e=>{ keys[e.key.toLowerCase()]=false; if(e.key===" "||e.key.toLowerCase()==="j")atkHeld=false; });
 cv.addEventListener("pointerdown",e=>{ if(!running)return; if(e.clientX<W*0.5&&!joy.active){ joy={active:true,id:e.pointerId,ox:e.clientX,oy:e.clientY,x:e.clientX,y:e.clientY}; cv.setPointerCapture(e.pointerId);} else if(e.clientX>=W*0.5){ wantAtk=true; atkHeld=true; } });
 cv.addEventListener("pointermove",e=>{ if(joy.active&&e.pointerId===joy.id){ joy.x=e.clientX; joy.y=e.clientY; } });
@@ -329,6 +372,7 @@ cv.addEventListener("pointerup",endJoy); cv.addEventListener("pointercancel",end
 $("bAtk").addEventListener("pointerdown",e=>{ e.preventDefault(); wantAtk=true; atkHeld=true; try{ $("bAtk").setPointerCapture(e.pointerId); }catch(x){} });
 const relAtk=()=>{ atkHeld=false; }; $("bAtk").addEventListener("pointerup",relAtk); $("bAtk").addEventListener("pointercancel",relAtk); $("bAtk").addEventListener("lostpointercapture",relAtk);
 $("bDodge").addEventListener("pointerdown",e=>{ e.preventDefault(); wantDodge=true; });
+$("bSkill").addEventListener("pointerdown",e=>{ e.preventDefault(); wantSkill=true; });
 
 // ---------- game state ----------
 const ARENA=900;
@@ -336,8 +380,9 @@ let running=false, G=null, last=0;
 function startRun(){
   $("home").hidden=true; $("result").hidden=true; $("hud").hidden=false; $("ctrl").hidden=false; $("hint").hidden=false;
   const f=S.floor, sc=1+0.25*(f-1);
+  $("bSkill").hidden = sk(activeSkill().id)<=0; $("bSkillName").textContent=activeSkill().name.slice(0,4);
   $("intro").hidden=false; $("iFloor").textContent=floorName(f); $("iEq").textContent=cls().name+" / "+wep().name+" / "+arm().name; $("iCount").textContent=""; $("iCount").classList.remove("go");
-  G={t:RUN_TIME, floor:f, sc, cls:S.cls, intro:4.2, ending:null, before:{lv:S.lv,xp:S.xp}, p:{x:ARENA/2,y:ARENA/2,r:14,hp:maxHp(),mhp:maxHp(),face:0,atkCd:0,dodgeCd:0,dash:0,inv:0,swing:0},
+  G={t:RUN_TIME, floor:f, sc, cls:S.cls, intro:4.2, ending:null, before:{lv:S.lv,xp:S.xp}, p:{x:ARENA/2,y:ARENA/2,r:14,hp:maxHp(),mhp:maxHp(),face:0,atkCd:0,dodgeCd:0,skCd:0,skMax:1,dash:0,inv:0,swing:0,spin:0},
      enemies:[], loot:[], parts:[], beams:[], shots:[], buff:0, spawnT:0.5, boss:null, bossSpawned:false, kills:0, got:{slime:0,wing:0,horn:0}, xp:0, cam:{x:0,y:0}, shake:0, hintT:3};
   running=true; last=performance.now(); requestAnimationFrame(loop);
 }
@@ -384,8 +429,16 @@ function update(dt){
   if(keys["a"]||keys["arrowleft"])mx-=1; if(keys["d"]||keys["arrowright"])mx+=1; if(keys["w"]||keys["arrowup"])my-=1; if(keys["s"]||keys["arrowdown"])my+=1;
   const ml=Math.hypot(mx,my); if(ml>1){mx/=ml;my/=ml;}
   if(ml>0.05) p.face=Math.atan2(my,mx);
-  p.atkCd-=dt; p.dodgeCd-=dt; p.inv-=dt; p.swing-=dt;
-  let spd=C.spd;
+  p.atkCd-=dt; p.dodgeCd-=dt; p.skCd-=dt; p.inv-=dt; p.swing-=dt; p.spin-=dt;
+  // skill
+  if(G.ending)wantSkill=false;
+  if(wantSkill&&p.skCd<=0&&live){ const lvS=sk(activeSkill().id); if(lvS>0){
+    p.skMax=11-lvS; p.skCd=p.skMax;
+    if(G.cls==="sword"){ p.spin=0.3; const reach=p.r+w.len+10*lvS; const mult=1.6+0.2*lvS; for(const e of targets()){ const dx=e.x-p.x,dy=e.y-p.y,d=Math.hypot(dx,dy); if(d<reach+e.r){ hitEnemy(e,Math.round(pow*mult),Math.atan2(dy,dx),70); } } G.shake=6; burst(p.x,p.y,"#5EEAD4",16); }
+    else { const n=lvS>=4?5:3, spread=0.5; const tg=nearest(p.x,p.y,w.len+40); if(tg)p.face=Math.atan2(tg.y-p.y,tg.x-p.x); for(let i=0;i<n;i++){ const a=p.face+(i-(n-1)/2)*spread/((n-1)/2||1); beam(p.x+Math.cos(a)*(p.r+10),p.y+Math.sin(a)*(p.r+10),a,w.len,w.wid+lvS,pow); } p.swing=0.2; }
+  } }
+  wantSkill=false;
+  let spd=moveSpd();
   if(wantDodge&&p.dodgeCd<=0){ p.dash=0.18; p.inv=0.35; p.dodgeCd=1.1; }
   wantDodge=false;
   if(p.dash>0){ p.dash-=dt; spd=620; if(ml<0.05){mx=Math.cos(p.face);my=Math.sin(p.face);} }
@@ -445,6 +498,7 @@ function update(dt){
   $("timer").textContent=G.t.toFixed(1); $("timer").classList.toggle("hurry",G.t<=BOSS_AT);
   $("killc").textContent="撃破 "+G.kills; { const k=(G.bossSpawned?G.buff:Math.min(BUFF_MAX,G.kills*BUFF_PER_KILL))/BUFF_MAX; const f=$("chgfill"); f.style.width=(k*100)+"%"; f.style.backgroundColor=chgColor(k); f.parentElement.classList.toggle("max",k>=1); } $("hpbar").style.width=(p.hp/p.mhp*100)+"%";
   $("bAtk").classList.toggle("cool",p.atkCd>0); $("bDodge").classList.toggle("cool",p.dodgeCd>0);
+  $("bSkill").classList.toggle("cool",p.skCd>0); $("bSkillCd").style.height=(p.skCd>0?Math.max(0,p.skCd/p.skMax)*100:0)+"%";
 }
 function collectAll(){ for(const l of G.loot)G.got[l.k]++; G.loot=[]; }
 function beginEnd(reason){
@@ -487,6 +541,7 @@ function draw(){
     ctx.strokeStyle="rgba(255,255,255,"+k+")"; ctx.lineWidth=Math.max(2,b.wid*0.8); ctx.beginPath(); ctx.moveTo(b.x,b.y); ctx.lineTo(ex,ey); ctx.stroke(); }
   // player
   const w=wep(), a=arm(); const blink=p.inv>0&&Math.floor(performance.now()/60)%2===0;
+  if(p.spin>0){ const k=p.spin/0.3; ctx.strokeStyle="rgba(94,234,212,"+(0.8*k)+")"; ctx.lineWidth=6; ctx.beginPath(); ctx.arc(p.x,p.y,(p.r+w.len+10*sk("spin"))*(1.2-0.2*k),0,7); ctx.stroke(); }
   if(G.bossSpawned&&G.buff>0){ const k=G.buff/BUFF_MAX; ctx.strokeStyle=chgColor(k); ctx.globalAlpha=0.5+0.3*Math.sin(performance.now()/120); ctx.lineWidth=3; ctx.beginPath(); ctx.arc(p.x,p.y,p.r+8,0,7); ctx.stroke(); ctx.globalAlpha=1; }
   if(!blink && SPR.body){
     const flip = Math.cos(p.face)<0;
@@ -530,7 +585,7 @@ function endRun(reason){
   $("rTitle").textContent = reason==="boss"?floorName(G.floor)+" 制覇!":reason==="dead"?"素材を半分落とした":"帰還した";
   $("rSub").textContent = reason==="boss"?"次の行き先「"+floorName(G.floor+1)+"」が開いた。装備を整えて向かおう。":reason==="dead"?"回避で距離を取ると楽になる。":"ゲートが閉じる前に倒した数だけ、主に攻撃が通る(闘気)。";
   $("rXp").textContent="+"+G.xp;
-  $("rLvup").hidden = true; $("rLvText").textContent="Lv "+before+" → Lv "+S.lv;
+  $("rLvup").hidden = true; $("rLvText").textContent="Lv "+before+" → Lv "+S.lv; $("rSp").textContent="SP +"+(S.lv-before);
   const ll=$("rLoot"); ll.innerHTML=""; const rows=[];
   for(const k in G.got){ if(!G.got[k])continue; const r=document.createElement("div"); r.className="row"; r.innerHTML='<span><i class="dot" style="background:'+MATS[k].color+';margin-right:6px"></i>'+MATS[k].name+'</span><b>+'+G.got[k]+'</b>'; ll.appendChild(r); rows.push(r); }
   if(!rows.length){ ll.innerHTML='<span style="color:var(--ink2)">なし</span>'; }
