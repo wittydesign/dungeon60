@@ -1,0 +1,10 @@
+Method: built-in image_gen
+Reference: /Users/kisuking/Desktop/スクリーンショット 2026-09-26 4.44.16.png
+Generated original; native dimensions differ from the requested game canvas.
+
+Use case: stylized-concept. Generate a single detailed pixel-art protagonist sprite for a top-down action RPG.
+REFERENCE ROLE: the attached screenshot is a STYLE AND DETAIL reference only. Match its expressive large eyes, carefully shaped hair locks with several highlight and shadow tones, precise dark pixel contours and detailed clothing shading. Do NOT include the screenshot's white rounded card, border or background.
+CHARACTER: three-heads-tall chibi, short layered silver-gray hair with carefully rendered locks, expressive teal eyes, a small mouth, plain white T-shirt and gray shorts ending above the knees, empty hands, bare feet. Full body standing idle, both arms hanging naturally at sides, feet shoulder-width apart. Mostly front facing with a slight turn toward screen right; slightly elevated camera for a top-down action game. Character centered.
+COLOR: full RGB color with unrestricted palette, many carefully chosen discrete shades for hair, face, skin and clothing. Transparent 32-bit RGBA PNG: 8 bits per red, green, blue and alpha channel. Real transparent background mandatory. Keep pixels themselves crisp and fully opaque, with transparent surrounding pixels. Rich tonal detail through deliberate pixel clusters, not smooth painting.
+STYLE: polished Japanese RPG pixel art at the detail level of the reference. Crisp dark outlines, sharp square pixels, no antialiasing, no blurred edges, no watercolor texture, no airbrush. Keep visible pixel structure and three-heads-tall proportions.
+LAYOUT: target game canvas 48x64 pixels. Body centered at x=24; foot bottom at y=59 so final four logical rows are transparent. If native output is larger, use an exact uniform enlargement of that logical grid. No ground, no cast shadow, no text, no labels, no UI, no checkerboard pattern. One character, one pose, one image.
