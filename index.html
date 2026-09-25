@@ -91,7 +91,7 @@ button[disabled]{opacity:.4;cursor:default;}
 .skill .name{font-weight:800;}
 .skill .desc{font-size:12px;color:var(--ink2);}
 .skill .pips{display:inline-flex;gap:3px;margin-left:8px;vertical-align:middle;}
-.skill .pips i{width:9px;height:9px;border-radius:2px;background:rgba(255,255,255,.12);display:inline-block;}
+.skill .pips i{width:7px;height:9px;border-radius:2px;background:rgba(255,255,255,.12);display:inline-block;}
 .skill .pips i.on{background:var(--gold);}
 .sp{font-weight:800;color:var(--gold);}
 .btn.skill{width:60px;height:60px;background:var(--gold);box-shadow:0 0 0 4px rgba(245,197,66,.25);margin-bottom:40px;position:relative;overflow:hidden;font-size:12px;}
@@ -242,17 +242,19 @@ const ARMORS = [
 ].map(a=>({...a,kind:"a"}));
 const SKILLS = {
   sword:[
-    {id:"spin", name:"回転斬り", type:"active", desc:l=>"360度を薙ぎ払う。威力x"+(1.6+0.2*l).toFixed(1)+"、待ち"+(11-l)+"秒"},
+    {id:"spin", name:"回転斬り", type:"active", desc:l=>"360度を薙ぎ払う。威力x"+(1.6+0.15*l).toFixed(2)+"、待ち"+skCd(l)+"秒"},
     {id:"power", name:"剛力", type:"passive", desc:l=>"攻撃力 +"+(2*l)},
     {id:"wall", name:"鉄壁", type:"passive", desc:l=>"HP +"+(12*l)},
   ],
   mage:[
-    {id:"fan", name:"三連光線", type:"active", desc:l=>(l>=4?5:3)+"本の光線を同時に撃つ。待ち"+(11-l)+"秒"},
+    {id:"fan", name:"三連光線", type:"active", desc:l=>fanN(l)+"本の光線を同時に撃つ。待ち"+skCd(l)+"秒"},
     {id:"mana", name:"魔力", type:"passive", desc:l=>"攻撃力 +"+(2*l)},
-    {id:"swift", name:"韋駄天", type:"passive", desc:l=>"移動速度 +"+(6*l)+"%"},
+    {id:"swift", name:"韋駄天", type:"passive", desc:l=>"移動速度 +"+(4*l)+"%"},
   ],
 };
-const SK_MAX = 5;
+const SK_MAX = 10, SP_PER_LV = 3;
+const skCd = l => Math.max(4, Math.round((11-0.7*l)*10)/10);
+const fanN = l => l>=7?5:l>=4?4:3;
 const CLASSES = {
   sword:{name:"剣士", hp:100, atk:10, spd:205, cd:0.26, color:"#5EEAD4", weapons:SWORDS},
   mage:{name:"魔法使い", hp:70, atk:12, spd:175, cd:0.6, color:"#B58CFF", weapons:STAVES},
@@ -290,10 +292,10 @@ const cls = ()=>CLASSES[S.cls];
 const wep = ()=>cls().weapons.find(w=>w.id===S.wep[S.cls])||cls().weapons[0];
 const arm = ()=>ARMORS.find(a=>a.id===S.armor)||ARMORS[0];
 const sk = id => S.sk[id]||0;
-const spLeft = ()=>Math.max(0,(S.lv-1)-S.spUsed);
+const spLeft = ()=>Math.max(0,(S.lv-1)*SP_PER_LV-S.spUsed);
 const maxHp = ()=>cls().hp + (S.lv-1)*10 + arm().hp + 12*sk("wall");
 const atkPow = ()=>cls().atk + (S.lv-1)*2 + wep().atk + 2*sk("power") + 2*sk("mana");
-const moveSpd = ()=>cls().spd*(1+0.06*sk("swift"));
+const moveSpd = ()=>cls().spd*(1+0.04*sk("swift"));
 const activeSkill = ()=>SKILLS[S.cls][0];
 
 // ---------- dom ----------
@@ -433,9 +435,9 @@ function update(dt){
   // skill
   if(G.ending)wantSkill=false;
   if(wantSkill&&p.skCd<=0&&live){ const lvS=sk(activeSkill().id); if(lvS>0){
-    p.skMax=11-lvS; p.skCd=p.skMax;
-    if(G.cls==="sword"){ p.spin=0.3; const reach=p.r+w.len+10*lvS; const mult=1.6+0.2*lvS; for(const e of targets()){ const dx=e.x-p.x,dy=e.y-p.y,d=Math.hypot(dx,dy); if(d<reach+e.r){ hitEnemy(e,Math.round(pow*mult),Math.atan2(dy,dx),70); } } G.shake=6; burst(p.x,p.y,"#5EEAD4",16); }
-    else { const n=lvS>=4?5:3, spread=0.5; const tg=nearest(p.x,p.y,w.len+40); if(tg)p.face=Math.atan2(tg.y-p.y,tg.x-p.x); for(let i=0;i<n;i++){ const a=p.face+(i-(n-1)/2)*spread/((n-1)/2||1); beam(p.x+Math.cos(a)*(p.r+10),p.y+Math.sin(a)*(p.r+10),a,w.len,w.wid+lvS,pow); } p.swing=0.2; }
+    p.skMax=skCd(lvS); p.skCd=p.skMax;
+    if(G.cls==="sword"){ p.spin=0.3; const reach=p.r+w.len+6*lvS; const mult=1.6+0.15*lvS; for(const e of targets()){ const dx=e.x-p.x,dy=e.y-p.y,d=Math.hypot(dx,dy); if(d<reach+e.r){ hitEnemy(e,Math.round(pow*mult),Math.atan2(dy,dx),70); } } G.shake=6; burst(p.x,p.y,"#5EEAD4",16); }
+    else { const n=fanN(lvS), spread=0.5; const tg=nearest(p.x,p.y,w.len+40); if(tg)p.face=Math.atan2(tg.y-p.y,tg.x-p.x); for(let i=0;i<n;i++){ const a=p.face+(i-(n-1)/2)*spread/((n-1)/2||1); beam(p.x+Math.cos(a)*(p.r+10),p.y+Math.sin(a)*(p.r+10),a,w.len,w.wid+lvS,pow); } p.swing=0.2; }
   } }
   wantSkill=false;
   let spd=moveSpd();
@@ -541,7 +543,7 @@ function draw(){
     ctx.strokeStyle="rgba(255,255,255,"+k+")"; ctx.lineWidth=Math.max(2,b.wid*0.8); ctx.beginPath(); ctx.moveTo(b.x,b.y); ctx.lineTo(ex,ey); ctx.stroke(); }
   // player
   const w=wep(), a=arm(); const blink=p.inv>0&&Math.floor(performance.now()/60)%2===0;
-  if(p.spin>0){ const k=p.spin/0.3; ctx.strokeStyle="rgba(94,234,212,"+(0.8*k)+")"; ctx.lineWidth=6; ctx.beginPath(); ctx.arc(p.x,p.y,(p.r+w.len+10*sk("spin"))*(1.2-0.2*k),0,7); ctx.stroke(); }
+  if(p.spin>0){ const k=p.spin/0.3; ctx.strokeStyle="rgba(94,234,212,"+(0.8*k)+")"; ctx.lineWidth=6; ctx.beginPath(); ctx.arc(p.x,p.y,(p.r+w.len+6*sk("spin"))*(1.2-0.2*k),0,7); ctx.stroke(); }
   if(G.bossSpawned&&G.buff>0){ const k=G.buff/BUFF_MAX; ctx.strokeStyle=chgColor(k); ctx.globalAlpha=0.5+0.3*Math.sin(performance.now()/120); ctx.lineWidth=3; ctx.beginPath(); ctx.arc(p.x,p.y,p.r+8,0,7); ctx.stroke(); ctx.globalAlpha=1; }
   if(!blink && SPR.body){
     const flip = Math.cos(p.face)<0;
@@ -585,7 +587,7 @@ function endRun(reason){
   $("rTitle").textContent = reason==="boss"?floorName(G.floor)+" 制覇!":reason==="dead"?"素材を半分落とした":"帰還した";
   $("rSub").textContent = reason==="boss"?"次の行き先「"+floorName(G.floor+1)+"」が開いた。装備を整えて向かおう。":reason==="dead"?"回避で距離を取ると楽になる。":"ゲートが閉じる前に倒した数だけ、主に攻撃が通る(闘気)。";
   $("rXp").textContent="+"+G.xp;
-  $("rLvup").hidden = true; $("rLvText").textContent="Lv "+before+" → Lv "+S.lv; $("rSp").textContent="SP +"+(S.lv-before);
+  $("rLvup").hidden = true; $("rLvText").textContent="Lv "+before+" → Lv "+S.lv; $("rSp").textContent="SP +"+((S.lv-before)*SP_PER_LV);
   const ll=$("rLoot"); ll.innerHTML=""; const rows=[];
   for(const k in G.got){ if(!G.got[k])continue; const r=document.createElement("div"); r.className="row"; r.innerHTML='<span><i class="dot" style="background:'+MATS[k].color+';margin-right:6px"></i>'+MATS[k].name+'</span><b>+'+G.got[k]+'</b>'; ll.appendChild(r); rows.push(r); }
   if(!rows.length){ ll.innerHTML='<span style="color:var(--ink2)">なし</span>'; }
