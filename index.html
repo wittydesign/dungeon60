@@ -65,6 +65,12 @@ button[disabled]{opacity:.4;cursor:default;}
 .lootlist .row:first-child{border-top:0;padding-top:0;}
 .example{font-size:11px;color:var(--ink2);}
 #title{justify-content:center;text-align:center;gap:18px;}
+#pick{justify-content:center;}
+.pickcard{background:var(--panel);border:2px solid var(--line);border-radius:14px;padding:14px 16px;text-align:left;color:var(--ink);font-weight:500;display:flex;gap:14px;align-items:center;}
+.pickcard.on{border-color:var(--gold);background:var(--panel2);}
+.pickcard .nm{font-size:20px;font-weight:800;}
+.pickcard .ds{font-size:13px;color:var(--ink2);margin-top:2px;}
+.pickcard canvas{width:48px;height:64px;image-rendering:pixelated;flex:none;background:rgba(0,0,0,.25);border-radius:8px;}
 #title h1{font-size:44px;margin:0;}
 #title .sub{font-size:15px;}
 #title .tap{color:var(--gold);font-size:18px;font-weight:800;animation:pulse 1.4s ease-in-out infinite;}
@@ -135,6 +141,15 @@ button[disabled]{opacity:.4;cursor:default;}
     </div>
   </div>
 
+  <div class="screen" id="pick" hidden>
+    <div class="wrap">
+      <div><h1>職業を選ぶ</h1><p class="sub">一度選ぶと変えられない。転職には転職チケットが必要になる。</p></div>
+      <button class="pickcard" id="pSword"><canvas id="pcSword" width="48" height="64"></canvas><div><div class="nm">剣士</div><div class="ds">近距離。前方を薙ぎ払い、押し返す。HPが高く、殴り合いに強い。技は回転斬り。</div></div></button>
+      <button class="pickcard" id="pMage"><canvas id="pcMage" width="48" height="64"></canvas><div><div class="nm">魔法使い</div><div class="ds">遠距離。貫く光線で群れをまとめて倒す。HPは低め。技は三連光線。</div></div></button>
+      <button class="big" id="bPick" disabled>この職業で始める</button>
+    </div>
+  </div>
+
   <div class="screen" id="home">
     <div class="wrap">
       <div>
@@ -143,11 +158,7 @@ button[disabled]{opacity:.4;cursor:default;}
         <div class="row"><span>所持金 <span class="gold" id="hGold">0</span>G</span><span>傷薬 <b id="hPot">0</b>個</span></div>
       </div>
       <div class="card">
-        <b style="font-size:12px;color:var(--ink2)">職業</b>
-        <div class="cls" style="margin-top:6px">
-          <button class="ghost" id="cSword">剣士<small>近距離・前方の弧</small></button>
-          <button class="ghost" id="cMage">魔法使い<small>遠距離・貫く光線</small></button>
-        </div>
+        <div class="row"><div><b style="font-size:12px;color:var(--ink2)">職業</b><div style="font-size:20px;font-weight:800" id="hCls">剣士</div></div><button class="ghost small" id="bJob">転職(準備中)</button></div>
       </div>
       <div class="card">
         <div class="row" style="margin-bottom:10px">
@@ -277,7 +288,7 @@ const SPR_LIST = {body:"assets/body.png", hair:"assets/hair.png", enemy_slime:"a
 for(const a of ["a0","a1","a2","a3","a4"]) SPR_LIST["armor_"+a]="assets/armor_"+a+".png";
 for(const w of ["w0","w1","w2","w3","w4","m0","m1","m2","m3","m4"]) SPR_LIST["weapon_"+w]="assets/weapon_"+w+".png";
 const AV_W=48, AV_H=64;
-for(const k in SPR_LIST){ const im=new Image(); im.onload=()=>{ SPR[k]=im; renderAvatar(); }; im.onerror=()=>{}; im.src=SPR_LIST[k]; }
+for(const k in SPR_LIST){ const im=new Image(); im.onload=()=>{ SPR[k]=im; renderAvatar(); if(!$("pick").hidden)drawPick(); }; im.onerror=()=>{}; im.src=SPR_LIST[k]; }
 function spr(key,x,y,size,flip,c){ c=c||ctx; const im=SPR[key]; if(!im)return false; c.save(); c.imageSmoothingEnabled=false; c.translate(x,y); if(flip)c.scale(-1,1); c.drawImage(im,-size/2,-size/2,size,size); c.restore(); return true; }
 // layered avatar: body -> hair -> armor -> weapon. Returns false when the body sprite is missing.
 function avatar(c,x,y,scale,flip,clsId,wepId,armId){
@@ -293,9 +304,9 @@ const floorName = f => FLOORS[(f-1)%FLOORS.length]+(f>FLOORS.length?" 奥"+(Math
 
 // ---------- save ----------
 const KEY = "dgn60_save_v1";
-const def = ()=>({lv:1, xp:0, mats:{slime:0,wing:0,horn:0}, cls:"sword", wep:{sword:"w0",mage:"m0"}, armor:"a0", owned:{w0:1,m0:1,a0:1}, maxFloor:1, floor:1, runs:0, seenTitle:0, sk:{}, spUsed:0, gold:0, potions:0});
+const def = ()=>({lv:1, xp:0, mats:{slime:0,wing:0,horn:0}, cls:"sword", wep:{sword:"w0",mage:"m0"}, armor:"a0", owned:{w0:1,m0:1,a0:1}, maxFloor:1, floor:1, runs:0, seenTitle:0, picked:0, sk:{}, spUsed:0, gold:0, potions:0});
 let S = def();
-function load(){ try{ const j = JSON.parse(localStorage.getItem(KEY)); if(j&&j.lv){ S = Object.assign(def(), j); if(!S.wep){ S.wep={sword:j.weapon||"w0",mage:"m0"}; } S.wep=Object.assign({sword:"w0",mage:"m0"},S.wep); S.owned=Object.assign({w0:1,m0:1,a0:1},S.owned); if(!CLASSES[S.cls])S.cls="sword"; S.sk=S.sk||{}; S.spUsed=S.spUsed||0; S.gold=S.gold||0; S.potions=S.potions||0; } }catch(e){} }
+function load(){ try{ const j = JSON.parse(localStorage.getItem(KEY)); if(j&&j.lv){ S = Object.assign(def(), j); if(!S.wep){ S.wep={sword:j.weapon||"w0",mage:"m0"}; } S.wep=Object.assign({sword:"w0",mage:"m0"},S.wep); S.owned=Object.assign({w0:1,m0:1,a0:1},S.owned); if(!CLASSES[S.cls])S.cls="sword"; S.sk=S.sk||{}; S.spUsed=S.spUsed||0; S.gold=S.gold||0; S.potions=S.potions||0; if(S.runs>0&&!S.picked)S.picked=1; } }catch(e){} }
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
 load();
 const xpNeed = lv => Math.floor(20 * Math.pow(1.35, lv-1));
@@ -336,7 +347,7 @@ function renderSkills(){
 function renderHome(){
   renderAvatar(); renderSkills();
   $("hGold").textContent=S.gold; $("hPot").textContent=S.potions; $("bBuyPot").disabled=S.gold<POT_PRICE;
-  $("cSword").classList.toggle("on",S.cls==="sword"); $("cMage").classList.toggle("on",S.cls==="mage");
+  $("hCls").textContent=cls().name;
   $("hLv").textContent=S.lv; $("hXp").textContent=S.xp+" / "+xpNeed(S.lv);
   $("hHp").textContent=maxHp(); $("hAtk").textContent=atkPow();
   $("hWep").textContent=wep().name; $("hArm").textContent=arm().name;
@@ -361,12 +372,16 @@ function renderHome(){
   }
 }
 $("bBuyPot").onclick=()=>{ if(S.gold<POT_PRICE)return; S.gold-=POT_PRICE; S.potions++; save(); renderHome(); toast("傷薬を買った"); };
-$("cSword").onclick=()=>{ S.cls="sword"; save(); renderHome(); };
-$("cMage").onclick=()=>{ S.cls="mage"; save(); renderHome(); };
+$("bJob").onclick=()=>toast("転職チケットは準備中");
+let pickSel=null;
+function drawPick(){ for(const [id,c] of [["pcSword","sword"],["pcMage","mage"]]){ const cv2=$(id), x=cv2.getContext("2d"); x.clearRect(0,0,48,64); if(!avatar(x,24,32,1,false,c,CLASSES[c].weapons[0].id,"a0")){ x.fillStyle=CLASSES[c].color; x.beginPath(); x.arc(24,34,12,0,7); x.fill(); } } }
+$("pSword").onclick=()=>{ pickSel="sword"; $("pSword").classList.add("on"); $("pMage").classList.remove("on"); $("bPick").disabled=false; };
+$("pMage").onclick=()=>{ pickSel="mage"; $("pMage").classList.add("on"); $("pSword").classList.remove("on"); $("bPick").disabled=false; };
+$("bPick").onclick=()=>{ if(!pickSel)return; S.cls=pickSel; S.picked=1; save(); $("pick").hidden=true; $("home").hidden=false; renderHome(); toast(cls().name+"として始める"); };
 $("fDown").onclick=()=>{ S.floor=Math.max(1,S.floor-1); save(); renderHome(); };
 $("fUp").onclick=()=>{ S.floor=Math.min(S.maxFloor,S.floor+1); save(); renderHome(); };
 $("bStart").onclick=()=>startRun();
-$("title").addEventListener("pointerdown",()=>{ S.seenTitle=1; save(); $("title").hidden=true; $("home").hidden=false; });
+$("title").addEventListener("pointerdown",()=>{ S.seenTitle=1; save(); $("title").hidden=true; if(S.picked){ $("home").hidden=false; } else { drawPick(); $("pick").hidden=false; } });
 $("bAgain").onclick=()=>startRun();
 $("bHome").onclick=()=>{ $("result").hidden=true; $("home").hidden=false; renderHome(); };
 
@@ -654,5 +669,6 @@ function animateResult(kills, from, to, rows, lvup){
 
 renderHome();
 if(!S.seenTitle){ $("home").hidden=true; $("title").hidden=false; }
+else if(!S.picked){ $("home").hidden=true; drawPick(); $("pick").hidden=false; }
 })();
 </script>
