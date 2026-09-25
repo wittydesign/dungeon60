@@ -400,7 +400,7 @@ function startRun(){
   $("bSkill").hidden = sk(activeSkill().id)<=0; $("bSkillName").textContent=activeSkill().name.slice(0,4);
   $("intro").hidden=false; $("iFloor").textContent=floorName(f); $("iEq").textContent=cls().name+" / "+wep().name+" / "+arm().name; $("iCount").textContent=""; $("iCount").classList.remove("go");
   G={t:RUN_TIME, floor:f, sc, cls:S.cls, intro:4.2, ending:null, before:{lv:S.lv,xp:S.xp}, p:{x:ARENA/2,y:ARENA/2,r:14,hp:maxHp(),mhp:maxHp(),face:0,atkCd:0,dodgeCd:0,skCd:0,skMax:1,dash:0,inv:0,swing:0,spin:0,heal:0},
-     enemies:[], loot:[], parts:[], beams:[], shots:[], buff:0, spawnT:0.5, boss:null, bossSpawned:false, kills:0, got:{slime:0,wing:0,horn:0}, gold:0, pots:S.potions, gotPot:0, xp:0, cam:{x:0,y:0}, shake:0, hintT:3};
+     enemies:[], loot:[], parts:[], beams:[], shots:[], dmgs:[], buff:0, spawnT:0.5, boss:null, bossSpawned:false, kills:0, got:{slime:0,wing:0,horn:0}, gold:0, pots:S.potions, gotPot:0, xp:0, cam:{x:0,y:0}, shake:0, hintT:3};
   running=true; last=performance.now(); requestAnimationFrame(loop);
 }
 function spawnEnemy(){
@@ -426,7 +426,7 @@ function dropLoot(e){
   if(e.type==="boss"){ for(let i=0;i<3;i++)G.loot.push({k:Math.random()<.5?"slime":"wing",x:e.x+(Math.random()-.5)*60,y:e.y+(Math.random()-.5)*60,t:0}); }
 }
 function burst(x,y,c,n){ for(let i=0;i<n;i++){ const a=Math.random()*Math.PI*2,s=40+Math.random()*120; G.parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,t:0.4+Math.random()*.3,c}); } }
-function hitEnemy(e,pow,ang,kb){ e.hp-=pow; e.hit=0.12; burst(e.x,e.y,e.type==="boss"?"#F04A5A":"#FFFFFF",4); const k=e.type==="boss"?Math.min(kb,4):kb; e.x+=Math.cos(ang)*k; e.y+=Math.sin(ang)*k; }
+function hitEnemy(e,pow,ang,kb){ e.hp-=pow; e.hit=0.12; G.dmgs.push({x:e.x+(Math.random()-.5)*12,y:e.y-e.r-6,v:pow,t:0.7,big:pow>=atkPow()*1.5}); burst(e.x,e.y,e.type==="boss"?"#F04A5A":"#FFFFFF",4); const k=e.type==="boss"?Math.min(kb,4):kb; e.x+=Math.cos(ang)*k; e.y+=Math.sin(ang)*k; }
 function targets(){ return G.boss?[...G.enemies,G.boss]:G.enemies; }
 function nearest(x,y,maxD){ let best=null,bd=maxD; for(const e of targets()){ const d=Math.hypot(e.x-x,e.y-y)-e.r; if(d<bd){ bd=d; best=e; } } return best; }
 function beam(x,y,ang,len,wid,pow){
@@ -484,6 +484,7 @@ function update(dt){
   }
   wantAtk=false;
   for(let i=G.beams.length-1;i>=0;i--){ G.beams[i].t-=dt; if(G.beams[i].t<=0)G.beams.splice(i,1); }
+  for(let i=G.dmgs.length-1;i>=0;i--){ const d=G.dmgs[i]; d.t-=dt; d.y-=40*dt; if(d.t<=0)G.dmgs.splice(i,1); }
   // enemies
   if(live && G.enemies.length<7+G.floor){ G.spawnT-=dt; if(G.spawnT<=0){ spawnEnemy(); G.spawnT=Math.max(0.45,1.15-G.floor*0.07); } }
   for(let i=G.enemies.length-1;i>=0;i--){ const e=G.enemies[i]; e.hit-=dt; e.wob+=dt*6;
@@ -595,6 +596,9 @@ function draw(){
     ctx.fillStyle="#14132A"; ctx.beginPath(); ctx.arc(5,-4,2.5,0,7); ctx.arc(5,4,2.5,0,7); ctx.fill();
     ctx.restore(); }
   { const aimR = G.cls==="sword" ? p.r+w.len+60 : w.len+40; const tg=nearest(p.x,p.y,aimR); if(tg){ ctx.strokeStyle="rgba(245,197,66,.9)"; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(tg.x,tg.y,tg.r+6,0,7); ctx.stroke(); } }
+  ctx.textAlign="center"; ctx.textBaseline="middle";
+  for(const d of G.dmgs){ const k=Math.min(1,d.t/0.7); ctx.globalAlpha=k; const fs=d.big?22:15; ctx.font="800 "+fs+"px 'M PLUS Rounded 1c',sans-serif"; ctx.lineWidth=4; ctx.strokeStyle="rgba(20,19,42,.9)"; ctx.strokeText(d.v,d.x,d.y); ctx.fillStyle=d.big?"#F5C542":"#FFFFFF"; ctx.fillText(d.v,d.x,d.y); }
+  ctx.globalAlpha=1;
   for(const q of G.parts){ ctx.globalAlpha=Math.max(0,q.t/0.5); ctx.fillStyle=q.c; ctx.fillRect(q.x-2,q.y-2,4,4); } ctx.globalAlpha=1;
   ctx.restore();
   if(joy.active){ ctx.strokeStyle="rgba(255,255,255,.25)"; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(joy.ox,joy.oy,50,0,7); ctx.stroke(); let dx=joy.x-joy.ox,dy=joy.y-joy.oy; const l=Math.hypot(dx,dy); if(l>50){dx=dx/l*50;dy=dy/l*50;} ctx.fillStyle="rgba(255,255,255,.35)"; ctx.beginPath(); ctx.arc(joy.ox+dx,joy.oy+dy,22,0,7); ctx.fill(); }
