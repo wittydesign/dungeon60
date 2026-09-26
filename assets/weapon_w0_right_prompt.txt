@@ -1,0 +1,10 @@
+Method: built-in image_gen, reference-based edit.
+References: weapon_w0.png (weapon style) and body_a.png (placement guide only).
+Generated PNG copied without resizing or repositioning; user will align.
+
+Use case: precise-object-edit. Produce ONE revised wooden sword EQUIPMENT LAYER for a mobile game, isolated on real transparent alpha PNG.
+Image 1 is the existing wooden sword: retain its simple short brown wooden blade, wooden crossguard and wooden handle, smooth full-color illustration, medium dark outlines and cel shading.
+Image 2 is a CHARACTER PLACEMENT GUIDE ONLY. Do NOT output or draw the character, any hands, clothing, face, or body.
+CHANGE: The sword must now be carried OUTSIDE THE BODY ON THE SCREEN-RIGHT SIDE, with its blade pointing diagonally UP AND RIGHT, AWAY from the character. The blade must never cross the guide character's face, hair, chest, torso or legs. Screen-right placement is mandatory, regardless of anatomical naming of hands. Do not put it at the hand on screen-left. The existing sword layer crossed the body; eliminate that composition.
+COMPOSITION: use a portrait 3:4 canvas matching the guide's aspect ratio. Keep the whole sword in the RIGHTMOST part of this transparent canvas, not centered. The guide's SCREEN-RIGHT palm is at approximately 69% canvas width and 74% canvas height. Hilt center at (70%,74%); wooden crossguard at (76%,66%); blade tip at (94%,40%); pommel at (67%,80%). The blade stays entirely to the RIGHT of the torso, i.e. x above about 75% width, and leans away farther right as it rises. Entire sword fits inside the canvas. Modest short sword proportions, blade 2.5 times handle length, not oversized. Preserve substantial EMPTY TRANSPARENT canvas left of the sword to allow later manual alignment.
+Only the sword is visible. Every non-sword pixel must be genuine alpha transparency. NO background color, white backdrop, checkerboard, floor, shadow, text or logo. NO pixel art. Smooth clean curves, full color, approximately two-stage cel-shaded surfaces, restrained wood-grain detail. Output one transparent PNG.
