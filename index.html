@@ -109,7 +109,8 @@ button[disabled]{opacity:.4;cursor:default;}
 @media (prefers-reduced-motion: reduce){ .toast{transition:none;} .bar i{transition:none;} }
 
 /* ---- plaza (TOP) ---- */
-.plaza{padding:0;display:flex;flex-direction:column;overflow:hidden;}
+.plaza{padding:0!important;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;overflow:hidden;}
+.town{width:100%;min-height:0;}
 .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 16px;padding-top:calc(10px + env(safe-area-inset-top,0px));font-size:14px;font-weight:800;background:var(--panel);border-bottom:1px solid var(--line);}
 .town{position:relative;flex:1;overflow:hidden;background:#2F6B4A;}
 .town .sky{position:absolute;left:0;right:0;top:0;height:38%;background:linear-gradient(#7EC8F5,#BFE6FA);}
