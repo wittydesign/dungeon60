@@ -157,6 +157,7 @@ button[disabled]{opacity:.4;cursor:default;}
   <div class="hud" id="hud" hidden>
     <div class="row"><span id="timer">60.0</span><span><span id="killc">撃破 0</span> <span class="gold" id="goldc">+0G</span></span></div>
     <div class="bar"><i id="hpbar"></i></div>
+    <div class="row" id="jobline" hidden style="font-size:12px;color:#7EC8F5"><span id="jobText"></span><span id="jobProg"></span></div>
     <div class="bar boss" id="bossbar" hidden><i id="bossfill"></i></div>
   </div>
   <div class="ctrl" id="ctrl" hidden>
@@ -252,6 +253,7 @@ button[disabled]{opacity:.4;cursor:default;}
         <div class="row"><span>撃破数</span><span class="result-big" id="rKills">0</span></div>
         <div class="row"><span>獲得経験値</span><span id="rXp" style="font-weight:800">+0</span></div>
         <div class="row"><span>獲得ゴールド</span><span class="gold" id="rGold">+0G</span></div>
+        <div class="row" id="rJob" hidden style="flex-direction:column;align-items:flex-start;gap:2px"><span id="rJobText" style="font-size:13px;color:#7EC8F5"></span><b id="rJobRes"></b></div>
         <div class="row" id="rPotRow" hidden><span>拾った傷薬</span><span id="rPot" style="font-weight:800">+0</span></div>
         <div class="xpwrap"><div class="lab"><span id="rLvNow">Lv 1</span><span id="rXpNow">0 / 20</span></div><div class="xpbar"><i id="rXpBar"></i></div></div>
         <div id="rLvup" hidden style="margin-top:8px"><span class="tag">レベルアップ</span> <span id="rLvText"></span> <span class="sp" id="rSp"></span></div>
@@ -278,6 +280,7 @@ const MATS = {
   slime:{name:"スライムのかけら", color:"#7BE495"},
   wing:{name:"コウモリの羽", color:"#B58CFF"},
   horn:{name:"ボスの角", color:"#F5C542"},
+  token:{name:"依頼の証", color:"#7EC8F5"},
 };
 const NEED = [{}, {slime:5}, {slime:10, wing:6}, {horn:2, wing:12}, {horn:5, slime:20, wing:20}];
 const SWORDS = [
@@ -286,14 +289,14 @@ const SWORDS = [
   {id:"w2", name:"鉄の剣", atk:14, len:42, color:"#D7DCEB"},
   {id:"w3", name:"牙の剣", atk:25, len:46, color:"#F5C542"},
   {id:"w4", name:"竜骨の剣", atk:40, len:52, color:"#FF8A5B"},
-].map((w,i)=>({...w,need:NEED[i],kind:"w"}));
+].map((w,i)=>({...w,need:NEED[i],kind:"w",req:[1,3,6,10,15][i]}));
 const STAVES = [
   {id:"m0", name:"木の杖", atk:0, len:230, wid:7, color:"#B9865C"},
   {id:"m1", name:"石の杖", atk:6, len:250, wid:8, color:"#9AA0B4"},
   {id:"m2", name:"鉄の杖", atk:14, len:270, wid:9, color:"#D7DCEB"},
   {id:"m3", name:"牙の杖", atk:25, len:290, wid:11, color:"#F5C542"},
   {id:"m4", name:"竜骨の杖", atk:40, len:320, wid:13, color:"#FF8A5B"},
-].map((w,i)=>({...w,need:NEED[i],kind:"w"}));
+].map((w,i)=>({...w,need:NEED[i],kind:"w",req:[1,3,6,10,15][i]}));
 const ARMORS = [
   {id:"a0", name:"布の服", hp:0, color:"#5EEAD4", need:{}},
   {id:"a1", name:"革の鎧", hp:30, color:"#C8A06A", need:{slime:8}},
@@ -325,6 +328,14 @@ const GEAR = {
 };
 const GEAR_SLOTS = {helm:"兜",glove:"手袋",boot:"靴",charm:"お守り"};
 const GEAR_ALL = []; for(const slot in GEAR) GEAR[slot].forEach((g,i)=>{ g.kind="g"; g.slot=slot; g.need=GEAR_NEED[i]; GEAR_ALL.push(g); });
+// job-only rewards: need 依頼の証
+const JOB_GEAR = [
+  {id:"jh1",name:"牧場の帽子",slot:"helm",hp:25,atk:3,color:"#7EC8F5",need:{token:2}},
+  {id:"jc1",name:"依頼人のお守り",slot:"charm",crit:0.12,color:"#7EC8F5",need:{token:3}},
+  {id:"jg1",name:"職人の手袋",slot:"glove",aspd:0.12,color:"#7EC8F5",need:{token:3,slime:10}},
+  {id:"jb1",name:"旅人の靴",slot:"boot",mspd:0.1,color:"#7EC8F5",need:{token:3,wing:10}},
+];
+for(const g of JOB_GEAR){ g.kind="g"; g.job=1; GEAR[g.slot].push(g); GEAR_ALL.push(g); }
 const gearDesc = g => g.slot==="helm"?"HP+"+g.hp+" 攻撃+"+g.atk : g.slot==="glove"?"攻撃速度+"+Math.round(g.aspd*100)+"%" : g.slot==="boot"?"移動+"+Math.round(g.mspd*100)+"%" : "会心"+Math.round(g.crit*100)+"%";
 const CLASSES = {
   sword:{name:"剣士", hp:100, atk:10, spd:205, cd:0.26, color:"#5EEAD4", weapons:SWORDS},
@@ -353,12 +364,12 @@ const floorName = f => FLOORS[(f-1)%FLOORS.length]+(f>FLOORS.length?" 奥"+(Math
 
 // ---------- save ----------
 const KEY = "dgn60_save_v1";
-const def = ()=>({lv:1, xp:0, mats:{slime:0,wing:0,horn:0}, cls:"sword", wep:{sword:"w0",mage:"m0"}, armor:"a0", owned:{w0:1,m0:1,a0:1}, maxFloor:1, floor:1, runs:0, seenTitle:0, picked:0, body:"a", sk:{}, spUsed:0, gold:0, potions:0, gear:{helm:null,glove:null,boot:null,charm:null}});
+const def = ()=>({lv:1, xp:0, mats:{slime:0,wing:0,horn:0,token:0}, cls:"sword", wep:{sword:"w0",mage:"m0"}, armor:"a0", owned:{w0:1,m0:1,a0:1}, maxFloor:1, floor:1, runs:0, seenTitle:0, picked:0, body:"a", sk:{}, spUsed:0, gold:0, potions:0, gear:{helm:null,glove:null,boot:null,charm:null}});
 let S = def();
-function load(){ try{ const j = JSON.parse(localStorage.getItem(KEY)); if(j&&j.lv){ S = Object.assign(def(), j); if(!S.wep){ S.wep={sword:j.weapon||"w0",mage:"m0"}; } S.wep=Object.assign({sword:"w0",mage:"m0"},S.wep); S.owned=Object.assign({w0:1,m0:1,a0:1},S.owned); if(!CLASSES[S.cls])S.cls="sword"; S.sk=S.sk||{}; S.spUsed=S.spUsed||0; S.gold=S.gold||0; S.potions=S.potions||0; if(S.runs>0&&!S.picked)S.picked=1; S.gear=Object.assign({helm:null,glove:null,boot:null,charm:null},S.gear||{}); S.body=S.body||"a"; } }catch(e){} }
+function load(){ try{ const j = JSON.parse(localStorage.getItem(KEY)); if(j&&j.lv){ S = Object.assign(def(), j); if(!S.wep){ S.wep={sword:j.weapon||"w0",mage:"m0"}; } S.wep=Object.assign({sword:"w0",mage:"m0"},S.wep); S.owned=Object.assign({w0:1,m0:1,a0:1},S.owned); if(!CLASSES[S.cls])S.cls="sword"; S.sk=S.sk||{}; S.spUsed=S.spUsed||0; S.gold=S.gold||0; S.potions=S.potions||0; if(S.runs>0&&!S.picked)S.picked=1; S.gear=Object.assign({helm:null,glove:null,boot:null,charm:null},S.gear||{}); S.body=S.body||"a"; S.mats=Object.assign({slime:0,wing:0,horn:0,token:0},S.mats||{}); } }catch(e){} }
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
 load();
-const xpNeed = lv => Math.floor(20 * Math.pow(1.35, lv-1));
+const xpNeed = lv => Math.floor(30 * Math.pow(1.5, lv-1));
 const cls = ()=>CLASSES[S.cls];
 const wep = ()=>cls().weapons.find(w=>w.id===S.wep[S.cls])||cls().weapons[0];
 const arm = ()=>ARMORS.find(a=>a.id===S.armor)||ARMORS[0];
@@ -414,10 +425,11 @@ function renderHome(){
   for(const it of list){
     const row=document.createElement("div"); row.className="recipe";
     const owned=!!S.owned[it.id]; const equipped = (it.kind==="w"?S.wep[S.cls]:it.kind==="a"?S.armor:S.gear[it.slot])===it.id;
-    const can = Object.keys(it.need).every(k=>S.mats[k]>=it.need[k]);
+    const can = Object.keys(it.need).every(k=>S.mats[k]>=it.need[k]) && (!it.req || S.lv>=it.req);
+    const lvLock = it.req && S.lv<it.req;
     const needTxt = Object.keys(it.need).map(k=>'<span class="'+(S.mats[k]>=it.need[k]?"ok":"ng")+'">'+MATS[k].name+' '+S.mats[k]+'/'+it.need[k]+'</span>').join("、");
     const eff = it.kind==="g" ? GEAR_SLOTS[it.slot]+" "+gearDesc(it) : it.kind==="a" ? "HP+"+it.hp : S.cls==="mage" ? "攻撃+"+it.atk+" 射程"+it.len+" 太さ"+it.wid : "攻撃+"+it.atk+" 間合い"+it.len;
-    row.innerHTML='<div><div class="name"><i class="dot" style="background:'+it.color+';margin-right:6px"></i>'+it.name+' <span style="font-size:12px;color:var(--ink2)">'+eff+'</span></div><div class="need">'+(owned?"作成済み":needTxt||"最初から持っている")+'</div></div>';
+    row.innerHTML='<div><div class="name"><i class="dot" style="background:'+it.color+';margin-right:6px"></i>'+it.name+(it.job?' <span class="tag" style="background:#7EC8F5">依頼報酬</span>':'')+' <span style="font-size:12px;color:var(--ink2)">'+eff+'</span></div><div class="need">'+(owned?"作成済み":(lvLock?'<span class="ng">Lv'+it.req+'から</span>':'')+(needTxt?(lvLock?"、":"")+needTxt:(lvLock?"":"最初から持っている")))+'</div></div>';
     const b=document.createElement("button"); b.className="small"+(owned?" ghost":"");
     const equip=()=>{ if(it.kind==="w")S.wep[S.cls]=it.id; else if(it.kind==="a")S.armor=it.id; else S.gear[it.slot]=it.id; };
     if(equipped){ b.textContent="装備中"; b.disabled=true; }
@@ -437,6 +449,18 @@ $("hotShop").onclick=()=>openSheet("shShop");
 $("hotMe").onclick=()=>openSheet("shChar");
 $("hotBoard").onclick=()=>toast("掲示板は協力プレイと一緒に");
 $("hotGate").onclick=()=>{ renderMap(); openSheet("shMap"); };
+// ---- jobs (狩りの目的) ----
+const JOB_TYPES = ["kill","elite","mat","safe"];
+let pendingJob = null;
+function makeJob(f){
+  const t=JOB_TYPES[Math.floor(Math.random()*JOB_TYPES.length)];
+  if(t==="kill"){ const k=["slime","wing","archer"][Math.floor(Math.random()*3)]; const n=10+Math.floor(Math.random()*6)+f*2; const nm={slime:"粘液",wing:"コウモリ",archer:"射手"}[k]; return {t,k,n,text:nm+"を"+n+"体退治して",prog:0}; }
+  if(t==="elite"){ const n=1+Math.floor(Math.random()*2); return {t,n,text:"精鋭を"+n+"体倒して",prog:0}; }
+  if(t==="mat"){ const k=Math.random()<.5?"slime":"wing"; const n=4+Math.floor(Math.random()*4)+f; return {t,k,n,text:MATS[k].name+"を"+n+"個持ち帰って",prog:0}; }
+  return {t,n:1,text:"HPを3割より下げずに帰って",prog:1};
+}
+function jobProgress(j){ if(!j)return ""; if(j.t==="safe")return j.failed?"失敗":"継続中"; return j.prog+"/"+j.n; }
+function jobDone(j){ return j && !j.failed && j.prog>=j.n; }
 const WORLD_INFO = [
   {n:"苔の谷", x:25,y:81, who:"牧場の民", job:"畑と牧場を荒らす粘液を退治して", boss:"角の獣"},
   {n:"骨の王国", x:58,y:69, who:"王国の亡霊", job:"今も戦争を続けている兵を止めて", boss:"骨の王"},
@@ -453,7 +477,8 @@ function renderMap(){
     b.onclick=()=>{ if(f>S.maxFloor){ toast("まだ開いていない。前の主を倒そう"); return; } S.floor=f; save(); renderHome(); renderMap(); };
     m.appendChild(b); });
   const w=WORLD_INFO[(S.floor-1)%WORLD_INFO.length]; const deep=Math.floor((S.floor-1)/WORLD_INFO.length);
-  $("mapInfo").innerHTML='<b>'+floorName(S.floor)+'</b><br>住人: '+w.who+'<br>仕事: 「'+w.job+'」<br>主: '+w.boss+(deep>0?'<br>奥'+(deep+1)+': 敵がかなり強い':'');
+  if(!pendingJob||pendingJob.floor!==S.floor){ pendingJob=makeJob(S.floor); pendingJob.floor=S.floor; }
+  $("mapInfo").innerHTML='<b>'+floorName(S.floor)+'</b><br>住人: '+w.who+'<br>主: '+w.boss+(deep>0?'<br>奥'+(deep+1)+': 敵がかなり強い':'')+'<div style="margin-top:8px;padding:8px 10px;border-radius:10px;background:var(--panel2);color:var(--ink)"><b style="font-size:13px;color:#7EC8F5">今回の仕事(狩り)</b><br>「'+pendingJob.text+'」<br><span style="font-size:12px;color:var(--ink2)">達成で '+(60+20*S.floor)+'G と 依頼の証</span></div>';
 }
 let pickSel=null;
 function drawPick(){ $("pBodyA").classList.toggle("on",S.body==="a"); $("pBodyB").classList.toggle("on",S.body==="b"); for(const [id,c] of [["pcSword","sword"],["pcMage","mage"]]){ const cv2=$(id), x=cv2.getContext("2d"); x.clearRect(0,0,216,288); if(!avatar(x,108,144,4.5,false,c,CLASSES[c].weapons[0].id,"a0")){ x.fillStyle=CLASSES[c].color; x.beginPath(); x.arc(108,150,50,0,7); x.fill(); } } }
@@ -497,10 +522,13 @@ function startRun(mode){
   $("home").hidden=true; $("result").hidden=true; $("hud").hidden=false; $("ctrl").hidden=false; $("hint").hidden=false;
   const f=S.floor, sc=1+0.25*(f-1);
   $("bPot").hidden=false; $("bPotN").textContent=S.potions;
+  $("jobline").style.color="#7EC8F5"; $("jobline").hidden=!job; if(job){ $("jobText").textContent="仕事: "+job.text; $("jobProg").textContent=jobProgress(job); }
   $("bSkill").hidden = sk(activeSkill().id)<=0; $("bSkillName").textContent=activeSkill().name.slice(0,4);
   $("intro").hidden=false; $("iFloor").textContent=floorName(f)+(mode==="boss"?" の主":""); $("iEq").textContent=cls().name+" / "+wep().name+" / "+arm().name; $("iCount").textContent=""; $("iCount").classList.remove("go");
-  G={t:RUN_TIME, mode, floor:f, sc, cls:S.cls, intro:4.2, ending:null, eliteT:[28,48], before:{lv:S.lv,xp:S.xp}, p:{x:ARENA/2,y:ARENA/2,r:14,hp:maxHp(),mhp:maxHp(),face:0,atkCd:0,dodgeCd:0,skCd:0,skMax:1,dash:0,inv:0,swing:0,spin:0,heal:0},
-     enemies:[], loot:[], parts:[], beams:[], shots:[], dmgs:[], waves:[], spawnT:0.5, boss:null, bossSpawned:false, kills:0, got:{slime:0,wing:0,horn:0}, gold:0, pots:S.potions, gotPot:0, xp:0, cam:{x:0,y:0}, shake:0, hintT:3};
+  if(mode==="hunt"&&(!pendingJob||pendingJob.floor!==f)){ pendingJob=makeJob(f); pendingJob.floor=f; }
+  const job = mode==="hunt" ? Object.assign({},pendingJob,{prog:pendingJob.t==="safe"?1:0,failed:false,done:false}) : null;
+  G={t:RUN_TIME, mode, floor:f, sc, cls:S.cls, intro:4.2, ending:null, eliteT:[28,48], job, before:{lv:S.lv,xp:S.xp}, p:{x:ARENA/2,y:ARENA/2,r:14,hp:maxHp(),mhp:maxHp(),face:0,atkCd:0,dodgeCd:0,skCd:0,skMax:1,dash:0,inv:0,swing:0,spin:0,heal:0},
+     enemies:[], loot:[], parts:[], beams:[], shots:[], dmgs:[], waves:[], spawnT:0.5, boss:null, bossSpawned:false, kills:0, got:{slime:0,wing:0,horn:0,token:0}, gold:0, pots:S.potions, gotPot:0, xp:0, cam:{x:0,y:0}, shake:0, hintT:3};
   running=true; last=performance.now(); requestAnimationFrame(loop);
 }
 function spawnEnemy(){
@@ -596,7 +624,7 @@ function update(dt){
     if(G.enemies.length<cap){ G.spawnT-=dt; if(G.spawnT<=0){ spawnEnemy(); G.spawnT=Math.max(0.3,gap); } }
     if(!G.waves[wave]){ G.waves[wave]=1; if(wave===1)toast("敵が増えてきた"); if(wave===2)toast("湧きが激しい!"); if(wave===3){ toast("大群! 粘るか、逃げるか"); G.shake=6; } } }
   for(let i=G.enemies.length-1;i>=0;i--){ const e=G.enemies[i]; e.hit-=dt; e.wob+=dt*6;
-    if(e.hp<=0){ G.enemies.splice(i,1); G.kills++; G.xp+=e.type==="wing"?3:e.type==="elite"?20:4; dropLoot(e); burst(e.x,e.y,ECOL[e.type],e.type==="elite"?30:10); if(e.type==="elite"){ G.shake=8; toast("精鋭を討伐!"); } continue; }
+    if(e.hp<=0){ G.enemies.splice(i,1); G.kills++; G.xp+=e.type==="wing"?3:e.type==="elite"?20:4; dropLoot(e); jobHit(e.type); burst(e.x,e.y,ECOL[e.type],e.type==="elite"?30:10); if(e.type==="elite"){ G.shake=8; toast("精鋭を討伐!"); } continue; }
     const dx=p.x-e.x,dy=p.y-e.y,d=Math.hypot(dx,dy)||1; e.st-=dt;
     if(e.type==="slime"||e.type==="elite"){ e.x+=dx/d*e.spd*dt; e.y+=dy/d*e.spd*dt; }
     else if(e.type==="wing"){
@@ -615,7 +643,7 @@ function update(dt){
   for(let i=0;i<G.enemies.length;i++)for(let j=i+1;j<G.enemies.length;j++){ const a=G.enemies[i],b=G.enemies[j]; const dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy)||1,m=a.r+b.r; if(d<m){ const push=(m-d)/2; a.x-=dx/d*push;a.y-=dy/d*push;b.x+=dx/d*push;b.y+=dy/d*push; } }
   // boss
   if(G.boss){ const b=G.boss; b.hit-=dt; b.st-=dt;
-    if(b.hp<=0){ burst(b.x,b.y,"#F5C542",40); dropLoot(b); G.kills++; G.xp+=25+G.floor*5; G.boss=null; $("bossbar").hidden=true; G.shake=14; collectAll(); beginEnd("boss"); return; }
+    if(b.hp<=0){ burst(b.x,b.y,"#F5C542",40); dropLoot(b); G.kills++; G.xp+=50+G.floor*5; G.boss=null; $("bossbar").hidden=true; G.shake=14; collectAll(); beginEnd("boss"); return; }
     const dx=p.x-b.x,dy=p.y-b.y,d=Math.hypot(dx,dy)||1;
     b.sumT-=dt;
     if(b.state==="walk"){ b.x+=dx/d*b.spd*dt; b.y+=dy/d*b.spd*dt;
@@ -632,6 +660,7 @@ function update(dt){
   // loot
   for(let i=G.loot.length-1;i>=0;i--){ const l=G.loot[i]; l.t+=dt; const dx=p.x-l.x,dy=p.y-l.y,d=Math.hypot(dx,dy); if(d<70){ l.x+=dx/d*260*dt; l.y+=dy/d*260*dt; } if(d<p.r+8){ G.loot.splice(i,1); pickup(l); } }
   for(let i=G.parts.length-1;i>=0;i--){ const q=G.parts[i]; q.t-=dt; q.x+=q.vx*dt; q.y+=q.vy*dt; q.vx*=0.9; q.vy*=0.9; if(q.t<=0)G.parts.splice(i,1); }
+  if(G.job&&G.job.t==="safe"&&!G.job.failed&&p.hp<p.mhp*0.3){ G.job.failed=true; $("jobProg").textContent="失敗"; $("jobline").style.color="var(--boss)"; toast("仕事に失敗…"); }
   if(p.hp<=0&&!G.ending){ p.hp=0; beginEnd("dead"); return; }
   G.shake=Math.max(0,G.shake-dt*30);
   $("timer").textContent=G.t.toFixed(1); $("timer").classList.toggle("hurry",G.t<=10);
@@ -640,7 +669,11 @@ function update(dt){
   $("goldc").textContent="+"+G.gold+"G"; $("bPotN").textContent=G.pots; $("bPot").classList.toggle("cool",G.pots<=0);
   $("bSkill").classList.toggle("cool",p.skCd>0); $("bSkillCd").style.height=(p.skCd>0?Math.max(0,p.skCd/p.skMax)*100:0)+"%";
 }
-function pickup(l){ if(l.k==="gold"){ G.gold+=l.v; } else if(l.k==="potion"){ G.pots++; G.gotPot++; } else { G.got[l.k]++; } }
+function pickup(l){ if(l.k==="gold"){ G.gold+=l.v; } else if(l.k==="potion"){ G.pots++; G.gotPot++; } else { G.got[l.k]++; jobMat(l.k); } }
+function jobHit(type){ const j=G.job; if(!j||j.done)return; if((j.t==="kill"&&j.k===type)||(j.t==="elite"&&type==="elite")){ j.prog++; checkJob(); } }
+function jobMat(k){ const j=G.job; if(!j||j.done)return; if(j.t==="mat"&&j.k===k){ j.prog=G.got[k]; checkJob(); } }
+function checkJob(){ const j=G.job; if(!j)return; $("jobProg").textContent=jobProgress(j); if(!j.done&&jobDone(j)&&j.t!=="safe"){ j.done=true; toast("仕事完了!"); G.shake=6; burst(G.p.x,G.p.y,"#7EC8F5",24); $("jobline").style.color="#7BE495"; } }
+
 function collectAll(){ for(const l of G.loot)pickup(l); G.loot=[]; }
 function beginEnd(reason){
   if(G.ending)return; G.ending={reason,t:1.3}; joy.active=false;
@@ -725,6 +758,8 @@ function endRun(reason){
   const canBefore = craftableIds();
   if(reason!=="dead") collectAll();
   else { for(const k in G.got)G.got[k]=Math.floor(G.got[k]/2); G.gold=Math.floor(G.gold/2); }
+  let jobOk=false, jobGold=0;
+  if(G.job&&reason!=="dead"){ if(G.job.t==="safe"){ G.job.done=!G.job.failed; } if(G.job.done){ jobOk=true; jobGold=60+20*G.floor; G.gold+=jobGold; G.got.token=(G.got.token||0)+1; if(Math.random()<0.4){ G.pots++; G.gotPot++; } pendingJob=null; } }
   S.gold+=G.gold; S.potions=G.pots;
   const before=S.lv; S.xp+=G.xp; while(S.xp>=xpNeed(S.lv)){ S.xp-=xpNeed(S.lv); S.lv++; }
   for(const k in G.got)S.mats[k]+=G.got[k];
@@ -735,7 +770,8 @@ function endRun(reason){
   $("rTag").textContent = reason==="boss"?"主を討伐":reason==="dead"?"押し戻された":bossMode?"主は逃げた":"ゲートが閉じた";
   $("rTitle").textContent = reason==="boss"?floorName(G.floor)+" 制覇!":reason==="dead"?"素材を半分落とした":bossMode?"削り切れなかった":"帰還した";
   $("rSub").textContent = reason==="boss"?"次の行き先「"+floorName(G.floor+1)+"」が開いた。":reason==="dead"?"回避で距離を取ると楽になる。":bossMode?"装備とスキルを整えて、もう一度。":"狩った分だけ持ち帰った。精鋭を倒すと素材が多い。";
-  $("rXp").textContent="+"+G.xp; $("rGold").textContent="+"+G.gold+"G"; $("rPotRow").hidden=G.gotPot===0; $("rPot").textContent="+"+G.gotPot;
+  $("rXp").textContent="+"+G.xp; $("rGold").textContent="+"+G.gold+"G";
+  $("rJob").hidden=!G.job; if(G.job){ $("rJobText").textContent="仕事「"+G.job.text+"」"; $("rJobRes").textContent= jobOk?"達成! +"+jobGold+"G、依頼の証":"未達成"; $("rJobRes").style.color=jobOk?"#7BE495":"var(--ink2)"; } $("rPotRow").hidden=G.gotPot===0; $("rPot").textContent="+"+G.gotPot;
   $("rLvup").hidden = true; $("rLvText").textContent="Lv "+before+" → Lv "+S.lv; $("rSp").textContent="SP +"+((S.lv-before)*SP_PER_LV);
   const ll=$("rLoot"); ll.innerHTML=""; const rows=[];
   for(const k in G.got){ if(!G.got[k])continue; const r=document.createElement("div"); r.className="row"; r.innerHTML='<span><i class="dot" style="background:'+MATS[k].color+';margin-right:6px"></i>'+MATS[k].name+'</span><b>+'+G.got[k]+'</b>'; ll.appendChild(r); rows.push(r); }
