@@ -1,0 +1,350 @@
+[
+  {
+    "name": "armor_a1.png",
+    "width": 384,
+    "height": 512,
+    "alpha": true,
+    "transparentPixels": 172989,
+    "partialPixels": 23140,
+    "opaquePixels": 479,
+    "bounds": [
+      78,
+      235,
+      288,
+      399
+    ],
+    "status": "ok"
+  },
+  {
+    "name": "armor_a2.png",
+    "width": 384,
+    "height": 512,
+    "alpha": true,
+    "transparentPixels": 167193,
+    "partialPixels": 28677,
+    "opaquePixels": 738,
+    "bounds": [
+      100,
+      242,
+      307,
+      434
+    ],
+    "status": "ok"
+  },
+  {
+    "name": "armor_a3.png",
+    "width": 384,
+    "height": 512,
+    "alpha": true,
+    "transparentPixels": 146849,
+    "partialPixels": 48653,
+    "opaquePixels": 1106,
+    "bounds": [
+      38,
+      183,
+      349,
+      452
+    ],
+    "status": "ok"
+  },
+  {
+    "name": "armor_a4.png",
+    "width": 384,
+    "height": 512,
+    "alpha": true,
+    "transparentPixels": 154210,
+    "partialPixels": 41458,
+    "opaquePixels": 940,
+    "bounds": [
+      32,
+      184,
+      353,
+      438
+    ],
+    "status": "ok"
+  },
+  {
+    "name": "weapon_w1.png",
+    "width": 384,
+    "height": 512,
+    "alpha": true,
+    "transparentPixels": 178112,
+    "partialPixels": 17949,
+    "opaquePixels": 547,
+    "bounds": [
+      207,
+      161,
+      374,
+      466
+    ],
+    "status": "ok"
+  },
+  {
+    "name": "weapon_w2.png",
+    "width": 384,
+    "height": 512,
+    "alpha": true,
+    "transparentPixels": 184483,
+    "partialPixels": 11569,
+    "opaquePixels": 556,
+    "bounds": [
+      220,
+      115,
+      373,
+      459
+    ],
+    "status": "ok"
+  },
+  {
+    "name": "weapon_w3.png",
+    "width": 384,
+    "height": 512,
+    "alpha": true,
+    "transparentPixels": 180031,
+    "partialPixels": 15862,
+    "opaquePixels": 715,
+    "bounds": [
+      213,
+      47,
+      374,
+      451
+    ],
+    "status": "ok"
+  },
+  {
+    "name": "weapon_w4.png",
+    "width": 384,
+    "height": 512,
+    "alpha": true,
+    "transparentPixels": 171081,
+    "partialPixels": 24574,
+    "opaquePixels": 953,
+    "bounds": [
+      208,
+      41,
+      376,
+      480
+    ],
+    "status": "ok"
+  },
+  {
+    "name": "weapon_m1.png",
+    "width": 384,
+    "height": 512,
+    "alpha": true,
+    "transparentPixels": 185809,
+    "partialPixels": 10087,
+    "opaquePixels": 712,
+    "bounds": [
+      232,
+      26,
+      368,
+      491
+    ],
+    "status": "ok"
+  },
+  {
+    "name": "weapon_m2.png",
+    "width": 384,
+    "height": 512,
+    "alpha": true,
+    "transparentPixels": 187395,
+    "partialPixels": 8496,
+    "opaquePixels": 717,
+    "bounds": [
+      221,
+      28,
+      376,
+      489
+    ],
+    "status": "ok"
+  },
+  {
+    "name": "weapon_m3.png",
+    "width": 1086,
+    "height": 1448,
+    "alpha": true,
+    "transparentPixels": 1461092,
+    "partialPixels": 110853,
+    "opaquePixels": 583,
+    "bounds": [
+      649,
+      69,
+      1060,
+      1395
+    ],
+    "status": "ok"
+  },
+  {
+    "name": "weapon_m4.png",
+    "width": 1086,
+    "height": 1448,
+    "alpha": true,
+    "transparentPixels": 1450814,
+    "partialPixels": 121108,
+    "opaquePixels": 606,
+    "bounds": [
+      609,
+      37,
+      1056,
+      1414
+    ],
+    "status": "ok"
+  },
+  {
+    "name": "enemy_slime.png",
+    "width": 1254,
+    "height": 1254,
+    "alpha": true,
+    "transparentPixels": 1056475,
+    "partialPixels": 514786,
+    "opaquePixels": 1255,
+    "bounds": [
+      114,
+      222,
+      1141,
+      1023
+    ],
+    "status": "ok"
+  },
+  {
+    "name": "enemy_bat.png",
+    "width": 1254,
+    "height": 1254,
+    "alpha": true,
+    "transparentPixels": 1117677,
+    "partialPixels": 453001,
+    "opaquePixels": 1838,
+    "bounds": [
+      15,
+      222,
+      1236,
+      963
+    ],
+    "status": "ok"
+  },
+  {
+    "name": "enemy_archer.png",
+    "width": 1254,
+    "height": 1254,
+    "alpha": true,
+    "transparentPixels": 992487,
+    "partialPixels": 578096,
+    "opaquePixels": 1933,
+    "bounds": [
+      155,
+      67,
+      1214,
+      1185
+    ],
+    "status": "ok"
+  },
+  {
+    "name": "boss_horn.png",
+    "width": 1254,
+    "height": 1254,
+    "alpha": true,
+    "transparentPixels": 813088,
+    "partialPixels": 757314,
+    "opaquePixels": 2114,
+    "bounds": [
+      11,
+      118,
+      1246,
+      1147
+    ],
+    "status": "ok"
+  },
+  {
+    "name": "mat_slime.png",
+    "width": 1254,
+    "height": 1254,
+    "alpha": true,
+    "transparentPixels": 1049764,
+    "partialPixels": 522045,
+    "opaquePixels": 707,
+    "bounds": [
+      232,
+      96,
+      1039,
+      1156
+    ],
+    "status": "ok"
+  },
+  {
+    "name": "mat_wing.png",
+    "width": 1254,
+    "height": 1254,
+    "alpha": true,
+    "transparentPixels": 1178880,
+    "partialPixels": 392362,
+    "opaquePixels": 1274,
+    "bounds": [
+      111,
+      131,
+      1167,
+      1127
+    ],
+    "status": "ok"
+  },
+  {
+    "name": "mat_horn.png",
+    "width": 1254,
+    "height": 1254,
+    "alpha": true,
+    "transparentPixels": 1062998,
+    "partialPixels": 507722,
+    "opaquePixels": 1796,
+    "bounds": [
+      54,
+      86,
+      1206,
+      1170
+    ],
+    "status": "ok"
+  },
+  {
+    "name": "tile_moss.png",
+    "width": 1254,
+    "height": 1254,
+    "alpha": true,
+    "transparentPixels": 0,
+    "partialPixels": 0,
+    "opaquePixels": 1572516,
+    "bounds": [
+      0,
+      0,
+      1253,
+      1253
+    ],
+    "status": "ok",
+    "edgeDifferences": {
+      "horizontal": 0,
+      "vertical": 0,
+      "normalHorizontal": 4.314162755797569,
+      "normalVertical": 4.84307433557654
+    }
+  },
+  {
+    "name": "wall_moss.png",
+    "width": 1254,
+    "height": 1254,
+    "alpha": true,
+    "transparentPixels": 0,
+    "partialPixels": 0,
+    "opaquePixels": 1572516,
+    "bounds": [
+      0,
+      0,
+      1253,
+      1253
+    ],
+    "status": "ok",
+    "edgeDifferences": {
+      "horizontal": 0,
+      "vertical": 0,
+      "normalHorizontal": 4.554411252441244,
+      "normalVertical": 5.901083333015118
+    }
+  }
+]
