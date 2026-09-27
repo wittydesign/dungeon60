@@ -178,6 +178,20 @@ button[disabled]{opacity:.4;cursor:default;}
 .mapinfo{margin-top:10px;font-size:13px;color:var(--ink2);min-height:40px;}
 .mapinfo b{color:var(--ink);font-size:15px;}
 
+
+/* ---- text-baked UI ---- */
+.tab.txtimg .ico,.tab.txtimg .gatecore,.tab.txtimg .gatelbl{display:none!important;}
+.tab.txtimg{color:transparent!important;font-size:0;width:64px;height:64px;background:var(--off) center/contain no-repeat;min-width:64px;padding:0;}
+.tab.txtimg.on{background-image:var(--on);}
+.tab.txtimg.gatebtn{width:96px;height:96px;margin-top:-34px;}
+button.txtbtn{color:transparent!important;text-shadow:none!important;background-size:100% 100%!important;background-repeat:no-repeat!important;background-color:transparent!important;border-radius:0!important;min-height:52px;}
+button.txtbtn small{display:none;}
+.sheethead h2.txtrib{color:transparent!important;text-shadow:none!important;background-size:100% 100%!important;background-repeat:no-repeat!important;min-width:150px;height:34px;padding:0!important;}
+body.txtui .closeSheet{color:transparent!important;background:var(--tb-close) center/100% 100% no-repeat!important;min-width:80px;height:30px;}
+body.txtui .cbtn[data-tb="craft"]{color:transparent!important;background:var(--tb-craft,none) center/100% 100% no-repeat!important;min-width:76px;height:30px;}
+body.txtui .cbtn[data-tb="equip"]{color:transparent!important;background:var(--tb-equip,none) center/100% 100% no-repeat!important;min-width:76px;height:30px;}
+body.txtui .cbtn[data-tb="equipped"]{color:transparent!important;background:var(--tb-equipped,none) center/100% 100% no-repeat!important;min-width:76px;height:30px;opacity:1;}
+body.txtui #bBuyPot{color:transparent!important;background:var(--tb-buy,none) center/100% 100% no-repeat!important;min-width:76px;height:30px;}
 /* ---- optional UI art (assets/ui) ---- */
 .topbar.img{position:relative;padding-left:15%;padding-right:15%;padding-bottom:0;align-items:center;background:#14132A;}
 .topbar.img::before{content:"";position:absolute;left:0;right:0;bottom:0;height:auto;aspect-ratio:4.5;background:var(--topbarimg) center/100% 100% no-repeat;pointer-events:none;}
@@ -542,11 +556,11 @@ function renderHome(){
     const needTxt = Object.keys(it.need).map(k=>'<span class="'+(S.mats[k]>=it.need[k]?"ok":"ng")+'">'+MATS[k].name+' '+S.mats[k]+'/'+it.need[k]+'</span>').join("、");
     const eff = it.kind==="g" ? GEAR_SLOTS[it.slot]+" "+gearDesc(it) : it.kind==="a" ? "HP+"+it.hp : S.cls==="mage" ? "攻撃+"+it.atk+" 射程"+it.len+" 太さ"+it.wid : "攻撃+"+it.atk+" 間合い"+it.len;
     row.innerHTML='<div><div class="name"><i class="dot" style="background:'+it.color+';margin-right:6px"></i>'+it.name+(it.job?' <span class="tag" style="background:#7EC8F5">依頼報酬</span>':'')+' <span style="font-size:12px;color:var(--ink2)">'+eff+'</span></div><div class="need">'+(owned?"作成済み":(lvLock?'<span class="ng">Lv'+it.req+'から</span>':'')+(needTxt?(lvLock?"、":"")+needTxt:(lvLock?"":"最初から持っている")))+'</div></div>';
-    const b=document.createElement("button"); b.className="small"+(owned?" ghost":"");
+    const b=document.createElement("button"); b.className="small"+(owned?" ghost":""); b.classList.add("cbtn");
     const equip=()=>{ if(it.kind==="w")S.wep[S.cls]=it.id; else if(it.kind==="a")S.armor=it.id; else S.gear[it.slot]=it.id; };
-    if(equipped){ b.textContent="装備中"; b.disabled=true; }
-    else if(owned){ b.textContent="装備"; b.onclick=()=>{ equip(); save(); renderHome(); toast(it.name+"を装備"); }; }
-    else { b.textContent="作る"; b.disabled=!can; b.onclick=()=>{ for(const k in it.need)S.mats[k]-=it.need[k]; S.owned[it.id]=1; equip(); save(); renderHome(); toast(it.name+"を作った!"); }; }
+    if(equipped){ b.textContent="装備中"; b.disabled=true; b.dataset.tb="equipped"; }
+    else if(owned){ b.textContent="装備"; b.dataset.tb="equip"; b.onclick=()=>{ equip(); save(); renderHome(); toast(it.name+"を装備"); }; }
+    else { b.textContent="作る"; b.dataset.tb="craft"; b.disabled=!can; b.onclick=()=>{ for(const k in it.need)S.mats[k]-=it.need[k]; S.owned[it.id]=1; equip(); save(); renderHome(); toast(it.name+"を作った!"); }; }
     row.appendChild(b); cr.appendChild(row);
   }
 }
@@ -955,6 +969,14 @@ function animateResult(kills, from, to, rows, lvup){
   tryImg("assets/ui/ui_btn_gold.png",u=>{ document.documentElement.style.setProperty("--btngold","url("+u+")"); document.body.classList.add("btnimg"); });
   tryImg("assets/ui/ui_btn_dark.png",u=>{ document.documentElement.style.setProperty("--btndark","url("+u+")"); });
   tryImg("assets/ui/ui_ribbon.png",u=>{ document.documentElement.style.setProperty("--ribbon","url("+u+")"); });
+  // ---- text-baked UI (assets/ui/text): tabs with labels, buttons with labels, ribbons with titles ----
+  const T="assets/ui/text/";
+  for(const [id,name] of [["tabHome","home"],["tabShop","shop"],["tabGate","gate"],["tabItems","items"],["tabSet","settings"]]){
+    tryImg(T+"tab_"+name+"_off.png",off=>{ const el=$(id); el.classList.add("txtimg"); el.style.setProperty("--off","url("+off+")"); el.style.setProperty("--on","url("+off+")"); tryImg(T+"tab_"+name+"_on.png",on=>el.style.setProperty("--on","url("+on+")")); });
+  }
+  for(const [id,name] of [["bStart","hunt"],["bBoss","boss"],["bAgain","again"],["bHome","home"]]){ tryImg(T+"btn_"+name+".png",u=>{ const el=$(id); el.classList.add("txtbtn"); el.style.backgroundImage="url("+u+")"; el.dataset.txtimg=u; }); }
+  for(const [name,img] of [["close","btn_close"],["craft","btn_craft"],["equip","btn_equip"],["equipped","btn_equipped"],["buy","btn_buy"],["toCraft","btn_toCraft"]]) tryImg(T+img+".png",u=>{ document.documentElement.style.setProperty("--tb-"+name,"url("+u+")"); if(name==="close")document.body.classList.add("txtui"); });
+  for(const [sheet,name] of [["shMap","map"],["shShopMenu","shop"],["shCraft","craft"],["shShop","potion"],["shItems","items"],["shSet","settings"],["shChar","me"]]) tryImg(T+"ribbon_"+name+".png",u=>{ const h=$(sheet).querySelector(".sheethead h2"); if(h){ h.classList.add("txtrib"); h.style.backgroundImage="url("+u+")"; } });
 })();
 renderHome();
 if(!S.seenTitle){ $("home").hidden=true; $("title").hidden=false; }
