@@ -112,7 +112,9 @@ button[disabled]{opacity:.4;cursor:default;}
 .plaza{padding:0!important;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;overflow:hidden;}
 .town{width:100%;min-height:0;}
 .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 16px;padding-top:calc(10px + env(safe-area-inset-top,0px));font-size:14px;font-weight:800;background:var(--panel);border-bottom:1px solid var(--line);}
-.town{position:relative;flex:1;overflow:hidden;background:#2F6B4A;}
+.town{position:relative;flex:1;overflow:hidden;background:#2F6B4A;background-size:cover;background-position:center bottom;}
+.town.img .sky,.town.img .ground,.town.img .house,.town.img .ring{display:none;}
+.town.img .hot .lbl{background:rgba(20,19,42,.8);}
 .town .sky{position:absolute;left:0;right:0;top:0;height:38%;background:linear-gradient(#7EC8F5,#BFE6FA);}
 .town .ground{position:absolute;left:0;right:0;top:38%;bottom:0;background:linear-gradient(#7FB86A,#5E9A55);}
 .town .ground::before{content:"";position:absolute;left:10%;right:10%;top:18%;bottom:12%;border:3px dashed rgba(255,255,255,.25);border-radius:50%;}
@@ -120,7 +122,10 @@ button[disabled]{opacity:.4;cursor:default;}
 .hot .lbl{background:rgba(20,19,42,.75);padding:3px 10px;border-radius:999px;font-size:13px;}
 .hot small{font-size:11px;color:#FFE79A;font-weight:500;}
 .hot:focus-visible{outline:2px solid var(--gold);border-radius:12px;}
-.hot.gate{left:50%;top:22%;transform:translateX(-50%);}
+.hot.gate{left:50%;top:26%;transform:translateX(-50%);}
+.town.img .taparea{display:block;width:96px;height:70px;}
+.town.img .taparea.tapgate{width:120px;height:110px;}
+.taparea{display:none;}
 .hot.gate .ring{width:84px;height:104px;border-radius:42px 42px 8px 8px;border:8px solid #C9B25B;background:radial-gradient(ellipse at 50% 60%,#B58CFF 0%,#3A2A7A 60%,#14132A 100%);box-shadow:0 0 30px rgba(181,140,255,.6);animation:gateglow 2.4s ease-in-out infinite;}
 @keyframes gateglow{0%,100%{box-shadow:0 0 22px rgba(181,140,255,.45)}50%{box-shadow:0 0 44px rgba(181,140,255,.9)}}
 .hot .house{width:64px;height:54px;border-radius:6px;background:#B98B5A;position:relative;box-shadow:0 4px 0 rgba(0,0,0,.25);}
@@ -128,15 +133,15 @@ button[disabled]{opacity:.4;cursor:default;}
 .hot .house.craft{background:#9A7B58;} .hot .house.craft::before{background:#5B3A2A;}
 .hot .house.shop{background:#7FB08A;} .hot .house.shop::before{background:#3E6E4A;}
 .hot .house.board{width:56px;height:40px;background:#D9C9A0;border:4px solid #7A5A3A;} .hot .house.board::before{display:none;}
-.hot.me{left:50%;bottom:10%;transform:translateX(-50%);}
+.hot.me{left:50%;bottom:12%;transform:translateX(-50%);}
 .hot.me canvas{width:72px;height:96px;filter:drop-shadow(0 4px 4px rgba(0,0,0,.35));}
 .bottombar{padding:10px 16px;padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));background:var(--panel);border-top:1px solid var(--line);display:flex;flex-direction:column;gap:8px;}
 .dest{display:flex;align-items:center;justify-content:center;gap:12px;}
 .dest span{font-size:18px;font-weight:800;min-width:120px;text-align:center;}
-.sheet{position:absolute;left:0;right:0;bottom:0;max-height:78%;overflow-y:auto;background:var(--panel);border-top:1px solid var(--line);border-radius:18px 18px 0 0;padding:14px 16px;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px));box-shadow:0 -10px 40px rgba(0,0,0,.5);}
+.sheet{position:absolute;left:0;right:0;bottom:0;max-height:88%;overflow-y:auto;background:var(--panel);border-top:1px solid var(--line);border-radius:18px 18px 0 0;padding:14px 16px;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px));box-shadow:0 -10px 40px rgba(0,0,0,.5);}
 .sheethead{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
 .sheethead h2{margin:0;}
-.map{position:relative;width:100%;aspect-ratio:3/4;max-width:100%;border-radius:12px;background:linear-gradient(160deg,#5E9A55 0%,#8FB0A0 35%,#C9B688 60%,#7A4A3A 100%);overflow:hidden;}
+.map{position:relative;width:100%;aspect-ratio:3/4;max-width:100%;border-radius:12px;background:linear-gradient(160deg,#5E9A55 0%,#8FB0A0 35%,#C9B688 60%,#7A4A3A 100%);background-size:cover;background-position:center;overflow:hidden;}
 .pin{position:absolute;transform:translate(-50%,-50%);background:none;border:0;padding:0;color:var(--ink);display:flex;flex-direction:column;align-items:center;gap:2px;font:inherit;font-weight:800;cursor:pointer;}
 .pin i{width:22px;height:22px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--gold);border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.4);}
 .pin span{font-size:11px;background:rgba(20,19,42,.75);padding:2px 7px;border-radius:999px;white-space:nowrap;}
@@ -192,18 +197,11 @@ button[disabled]{opacity:.4;cursor:default;}
     <div class="town" id="town">
       <div class="sky"></div>
       <div class="ground"></div>
-      <button class="hot gate" id="hotGate" aria-label="ゲート"><span class="ring"></span><span class="lbl">ゲート</span><small id="hotGateDest">苔の谷</small></button>
-      <button class="hot" id="hotCraft" style="left:8%;top:44%"><span class="house craft"></span><span class="lbl">工房</span></button>
-      <button class="hot" id="hotShop" style="right:8%;top:44%"><span class="house shop"></span><span class="lbl">薬屋</span></button>
-      <button class="hot" id="hotBoard" style="right:10%;top:16%"><span class="house board"></span><span class="lbl">掲示板</span><small>準備中</small></button>
+      <button class="hot gate" id="hotGate" aria-label="ゲート"><span class="ring"></span><span class="taparea tapgate"></span><span class="lbl">ゲート</span><small id="hotGateDest">苔の谷</small><small style="color:#fff;opacity:.85">タップして出発</small></button>
+      <button class="hot" id="hotCraft" style="left:4%;top:46%"><span class="house craft"></span><span class="taparea"></span><span class="lbl">工房</span></button>
+      <button class="hot" id="hotShop" style="right:4%;top:46%"><span class="house shop"></span><span class="taparea"></span><span class="lbl">薬屋</span></button>
+      <button class="hot" id="hotBoard" style="right:5%;top:19%"><span class="house board"></span><span class="taparea"></span><span class="lbl">掲示板</span><small>準備中</small></button>
       <button class="hot me" id="hotMe" aria-label="自分"><canvas id="avatar" width="288" height="384"></canvas><span class="lbl">じぶん</span></button>
-    </div>
-    <div class="bottombar">
-      <div class="dest"><button class="ghost small" id="fDown" aria-label="前の行き先">−</button><span id="hFloor">苔の谷</span><button class="ghost small" id="fUp" aria-label="次の行き先">＋</button></div>
-      <div class="cls">
-        <button class="big" id="bStart" style="padding:12px 8px;font-size:17px">狩りに出る<br><small style="font-size:11px;font-weight:500">60秒。素材とお金</small></button>
-        <button class="big" id="bBoss" style="padding:12px 8px;font-size:17px;background:var(--boss);color:#fff">主に挑む<br><small style="font-size:11px;font-weight:500">60秒。倒せば次が開く</small></button>
-      </div>
     </div>
 
     <div class="sheet" id="shCraft" hidden>
@@ -236,6 +234,10 @@ button[disabled]{opacity:.4;cursor:default;}
       <div class="sheethead"><h2>行き先</h2><button class="ghost small closeSheet">閉じる</button></div>
       <div class="map" id="map"></div>
       <div class="mapinfo" id="mapInfo"></div>
+      <div class="cls" style="margin-top:12px">
+        <button class="big" id="bStart" style="padding:12px 8px;font-size:17px">狩りに出る<br><small style="font-size:11px;font-weight:500">60秒。素材とお金</small></button>
+        <button class="big" id="bBoss" style="padding:12px 8px;font-size:17px;background:var(--boss);color:#fff">主に挑む<br><small style="font-size:11px;font-weight:500">60秒。倒せば次が開く</small></button>
+      </div>
     </div>
   </div>
 
@@ -404,8 +406,7 @@ function renderHome(){
   $("hWep").textContent=wep().name; $("hArm").textContent=arm().name;
   $("hCrit").textContent=Math.round(critRate()*100)+"%"; $("hAspd").textContent="+"+Math.round(gv("glove","aspd")*100)+"%";
   const gn=slot=>gear(slot)?gear(slot).name:"なし"; $("hG1").textContent=gn("helm")+" / "+gn("glove"); $("hG2").textContent=gn("boot")+" / "+gn("charm");
-  $("hFloor").textContent=floorName(S.floor); $("hotGateDest").textContent=floorName(S.floor); $("hCls2").textContent=cls().name;
-  $("fDown").disabled = S.floor<=1; $("fUp").disabled = S.floor>=S.maxFloor;
+  $("hotGateDest").textContent=floorName(S.floor); $("hCls2").textContent=cls().name;
   const m=$("hMat"); m.innerHTML="";
   for(const k in MATS){ const c=document.createElement("span"); c.className="chip"; c.innerHTML='<i class="dot" style="background:'+MATS[k].color+'"></i>'+MATS[k].name+' <b>'+S.mats[k]+'</b>'; m.appendChild(c); }
   const cr=$("craft"); cr.innerHTML="";
@@ -437,14 +438,14 @@ $("hotMe").onclick=()=>openSheet("shChar");
 $("hotBoard").onclick=()=>toast("掲示板は協力プレイと一緒に");
 $("hotGate").onclick=()=>{ renderMap(); openSheet("shMap"); };
 const WORLD_INFO = [
-  {n:"苔の谷", x:22,y:78, who:"牧場の民", job:"畑と牧場を荒らす粘液を退治して", boss:"角の獣"},
-  {n:"骨の王国", x:58,y:66, who:"王国の亡霊", job:"今も戦争を続けている兵を止めて", boss:"骨の王"},
-  {n:"歯車の都", x:80,y:52, who:"機械職人", job:"暴走した警備機械を止めて", boss:"水晶の守護者"},
-  {n:"水路の街", x:34,y:56, who:"水の民", job:"水路に居着いた幽霊を追い払って", boss:"角の獣(親)"},
-  {n:"溶岩の工房", x:66,y:34, who:"火の鍛冶師", job:"動き出した守り石を止めて", boss:"骨の王(炎)"},
-  {n:"霧の墓所", x:20,y:36, who:"墓守", job:"眠れない亡者を鎮めて", boss:"水晶の守護者(霧)"},
-  {n:"天空の祭壇", x:44,y:18, who:"祭壇の巫女", job:"祭壇を占領した獣を追い出して", boss:"獣の王"},
-  {n:"竜の国", x:76,y:12, who:"竜人", job:"暴れる竜を鎮めて", boss:"竜"},
+  {n:"苔の谷", x:25,y:81, who:"牧場の民", job:"畑と牧場を荒らす粘液を退治して", boss:"角の獣"},
+  {n:"骨の王国", x:58,y:69, who:"王国の亡霊", job:"今も戦争を続けている兵を止めて", boss:"骨の王"},
+  {n:"歯車の都", x:82,y:52, who:"機械職人", job:"暴走した警備機械を止めて", boss:"水晶の守護者"},
+  {n:"水路の街", x:37,y:52, who:"水の民", job:"水路に居着いた幽霊を追い払って", boss:"角の獣(親)"},
+  {n:"溶岩の工房", x:71,y:32, who:"火の鍛冶師", job:"動き出した守り石を止めて", boss:"骨の王(炎)"},
+  {n:"霧の墓所", x:19,y:33, who:"墓守", job:"眠れない亡者を鎮めて", boss:"水晶の守護者(霧)"},
+  {n:"天空の祭壇", x:44,y:13, who:"祭壇の巫女", job:"祭壇を占領した獣を追い出して", boss:"獣の王"},
+  {n:"竜の国", x:79,y:8, who:"竜人", job:"暴れる竜を鎮めて", boss:"竜"},
 ];
 function renderMap(){
   const m=$("map"); m.innerHTML="";
@@ -462,8 +463,6 @@ $("hBody").onclick=()=>{ setBody(S.body==="a"?"b":"a"); toast("見た目を切�
 $("pSword").onclick=()=>{ pickSel="sword"; $("pSword").classList.add("on"); $("pMage").classList.remove("on"); $("bPick").disabled=false; };
 $("pMage").onclick=()=>{ pickSel="mage"; $("pMage").classList.add("on"); $("pSword").classList.remove("on"); $("bPick").disabled=false; };
 $("bPick").onclick=()=>{ if(!pickSel)return; S.cls=pickSel; S.picked=1; save(); $("pick").hidden=true; $("home").hidden=false; renderHome(); toast(cls().name+"として始める"); };
-$("fDown").onclick=()=>{ S.floor=Math.max(1,S.floor-1); save(); renderHome(); };
-$("fUp").onclick=()=>{ S.floor=Math.min(S.maxFloor,S.floor+1); save(); renderHome(); };
 $("bStart").onclick=()=>startRun("hunt");
 $("bBoss").onclick=()=>startRun("boss");
 $("title").addEventListener("pointerdown",()=>{ S.seenTitle=1; save(); $("title").hidden=true; if(S.picked){ $("home").hidden=false; } else { drawPick(); $("pick").hidden=false; } });
@@ -494,7 +493,7 @@ $("bPot").addEventListener("pointerdown",e=>{ e.preventDefault(); wantPot=true; 
 const ARENA=900;
 let running=false, G=null, last=0;
 function startRun(mode){
-  mode = mode||"hunt";
+  mode = mode||"hunt"; closeSheets();
   $("home").hidden=true; $("result").hidden=true; $("hud").hidden=false; $("ctrl").hidden=false; $("hint").hidden=false;
   const f=S.floor, sc=1+0.25*(f-1);
   $("bPot").hidden=false; $("bPotN").textContent=S.potions;
@@ -769,6 +768,8 @@ function animateResult(kills, from, to, rows, lvup){
   animTimers.push(setTimeout(step,delay));
 }
 
+(function(){ const t=new Image(); t.onload=()=>{ const el=$("town"); el.style.backgroundImage="url(assets/plaza.jpg)"; el.classList.add("img"); }; t.src="assets/plaza.jpg";
+  const m=new Image(); m.onload=()=>{ $("map").style.backgroundImage="url(assets/map.jpg)"; }; m.src="assets/map.jpg"; })();
 renderHome();
 if(!S.seenTitle){ $("home").hidden=true; $("title").hidden=false; }
 else if(!S.picked){ $("home").hidden=true; drawPick(); $("pick").hidden=false; }
