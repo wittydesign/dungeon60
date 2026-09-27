@@ -232,7 +232,7 @@ body.btnimg button.ghost{background:var(--btndark,none) center/100% 100% no-repe
     <div class="town" id="town">
       <div class="sky"></div>
       <div class="ground"></div>
-      <button class="hot gate" id="hotGate" aria-label="ゲート"><span class="ring"></span><span class="taparea tapgate"></span><span class="lbl" id="hotGateDest">苔の谷</span></button>
+      <div class="hot gate" id="hotGate" aria-hidden="true" style="pointer-events:none"><span class="ring"></span><span class="lbl" id="hotGateDest">苔の谷</span></div>
       <button class="hot me" id="hotMe" aria-label="自分"><canvas id="avatar" width="792" height="768"></canvas><span class="lbl">じぶん</span></button>
     </div>
 
@@ -550,7 +550,6 @@ function openSheet(id){ for(const el of document.querySelectorAll(".sheet"))el.h
 function closeSheets(){ for(const el of document.querySelectorAll(".sheet"))el.hidden=true; setTab("tabHome"); }
 for(const b of document.querySelectorAll(".closeSheet"))b.onclick=closeSheets;
 $("hotMe").onclick=()=>openSheet("shChar");
-$("hotGate").onclick=()=>{ renderMap(); openSheet("shMap"); };
 function setTab(id){ for(const t of document.querySelectorAll(".tab"))t.classList.toggle("on",t.id===id); }
 $("tabHome").onclick=()=>{ closeSheets(); setTab("tabHome"); };
 $("tabShop").onclick=()=>{ openSheet("shShopMenu"); setTab("tabShop"); };
