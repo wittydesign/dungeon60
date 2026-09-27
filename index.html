@@ -73,7 +73,7 @@ button[disabled]{opacity:.4;cursor:default;}
 .pickcard.on{border-color:var(--gold);background:var(--panel2);}
 .pickcard .nm{font-size:20px;font-weight:800;}
 .pickcard .ds{font-size:13px;color:var(--ink2);margin-top:2px;}
-.pickcard canvas{width:72px;height:96px;flex:none;background:rgba(0,0,0,.25);border-radius:8px;}
+.pickcard canvas{width:108px;height:108px;flex:none;background:rgba(0,0,0,.25);border-radius:8px;}
 #title h1{font-size:44px;margin:0;}
 #title .sub{font-size:15px;}
 #title .tap{color:var(--gold);font-size:18px;font-weight:800;animation:pulse 1.4s ease-in-out infinite;}
@@ -161,7 +161,7 @@ button[disabled]{opacity:.4;cursor:default;}
 .hot .house.shop{background:#7FB08A;} .hot .house.shop::before{background:#3E6E4A;}
 .hot .house.board{width:56px;height:40px;background:#D9C9A0;border:4px solid #7A5A3A;} .hot .house.board::before{display:none;}
 .hot.me{left:50%;bottom:7%;transform:translateX(-50%);}
-.hot.me canvas{width:132px;height:176px;filter:drop-shadow(0 6px 6px rgba(0,0,0,.4));}
+.hot.me canvas{width:198px;height:192px;filter:drop-shadow(0 6px 6px rgba(0,0,0,.4));}
 .bottombar{padding:10px 16px;padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));background:var(--panel);border-top:1px solid var(--line);display:flex;flex-direction:column;gap:8px;}
 .dest{display:flex;align-items:center;justify-content:center;gap:12px;}
 .dest span{font-size:18px;font-weight:800;min-width:120px;text-align:center;}
@@ -216,8 +216,8 @@ body.btnimg button.ghost{background:var(--btndark,none) center/100% 100% no-repe
   <div class="screen" id="pick" hidden>
     <div class="wrap">
       <div><h1>職業を選ぶ</h1><p class="sub">一度選ぶと変えられない。転職には転職チケットが必要になる。</p></div>
-      <button class="pickcard" id="pSword"><canvas id="pcSword" width="216" height="288"></canvas><div><div class="nm">剣士</div><div class="ds">近距離。前方を薙ぎ払い、押し返す。HPが高く、殴り合いに強い。技は回転斬り。</div></div></button>
-      <button class="pickcard" id="pMage"><canvas id="pcMage" width="216" height="288"></canvas><div><div class="nm">魔法使い</div><div class="ds">遠距離。貫く光線で群れをまとめて倒す。HPは低め。技は三連光線。</div></div></button>
+      <button class="pickcard" id="pSword"><canvas id="pcSword" width="324" height="324"></canvas><div><div class="nm">剣士</div><div class="ds">近距離。前方を薙ぎ払い、押し返す。HPが高く、殴り合いに強い。技は回転斬り。</div></div></button>
+      <button class="pickcard" id="pMage"><canvas id="pcMage" width="324" height="324"></canvas><div><div class="nm">魔法使い</div><div class="ds">遠距離。貫く光線で群れをまとめて倒す。HPは低め。技は三連光線。</div></div></button>
       <div class="card"><b style="font-size:12px;color:var(--ink2)">見た目</b><div class="cls" style="margin-top:6px"><button class="ghost" id="pBodyA">タイプA<small>銀髪の短髪</small></button><button class="ghost" id="pBodyB">タイプB<small>栗色の長め</small></button></div></div>
       <button class="big" id="bPick" disabled>この職業で始める</button>
     </div>
@@ -233,7 +233,7 @@ body.btnimg button.ghost{background:var(--btndark,none) center/100% 100% no-repe
       <div class="sky"></div>
       <div class="ground"></div>
       <button class="hot gate" id="hotGate" aria-label="ゲート"><span class="ring"></span><span class="taparea tapgate"></span><span class="lbl" id="hotGateDest">苔の谷</span></button>
-      <button class="hot me" id="hotMe" aria-label="自分"><canvas id="avatar" width="528" height="704"></canvas><span class="lbl">じぶん</span></button>
+      <button class="hot me" id="hotMe" aria-label="自分"><canvas id="avatar" width="792" height="768"></canvas><span class="lbl">じぶん</span></button>
     </div>
 
     <nav class="tabbar">
@@ -488,7 +488,7 @@ function toast(t){ toastEl.textContent=t; toastEl.classList.add("show"); clearTi
 function matIcon(k){ return SPR["mat_"+k] ? '<img src="assets/mat_'+k+'.png" alt="" style="width:18px;height:18px;vertical-align:-4px;margin-right:4px">' : '<i class="dot" style="background:'+MATS[k].color+'"></i>'; }
 function renderAvatar(){
   const c=$("avatar"); if(!c)return; const x=c.getContext("2d"); x.clearRect(0,0,c.width,c.height);
-  if(avatar(x,c.width/2,c.height/2,11,false,S.cls,S.wep[S.cls],S.armor))return;
+  if(avatar(x,c.width/2,c.height/2+16,11,false,S.cls,S.wep[S.cls],S.armor))return;
   // fallback: simple figure in class/armor colors
   const a=arm(), w=wep(); const cx=c.width/2, cy=c.height/2; x.fillStyle=S.cls==="mage"?"#B58CFF":a.color; x.beginPath(); x.arc(cx,cy,60,0,7); x.fill();
   x.strokeStyle=w.color; x.lineWidth=16; x.lineCap="round"; x.beginPath(); x.moveTo(cx+30,cy+20); x.lineTo(cx+30+(S.cls==="mage"?70:w.len*2.6),cy-70); x.stroke();
@@ -596,7 +596,7 @@ function renderMap(){
   $("dUp").onclick=()=>{ if(S.floor<S.maxFloor){ S.floor++; save(); renderHome(); renderMap(); } else toast("主を倒すと奥が開く"); };
 }
 let pickSel=null;
-function drawPick(){ $("pBodyA").classList.toggle("on",S.body==="a"); $("pBodyB").classList.toggle("on",S.body==="b"); for(const [id,c] of [["pcSword","sword"],["pcMage","mage"]]){ const cv2=$(id), x=cv2.getContext("2d"); x.clearRect(0,0,216,288); if(!avatar(x,108,144,4.5,false,c,CLASSES[c].weapons[0].id,"a0")){ x.fillStyle=CLASSES[c].color; x.beginPath(); x.arc(108,150,50,0,7); x.fill(); } } }
+function drawPick(){ $("pBodyA").classList.toggle("on",S.body==="a"); $("pBodyB").classList.toggle("on",S.body==="b"); for(const [id,c] of [["pcSword","sword"],["pcMage","mage"]]){ const cv2=$(id), x=cv2.getContext("2d"); x.clearRect(0,0,324,324); if(!avatar(x,162,170,4.5,false,c,CLASSES[c].weapons[0].id,"a0")){ x.fillStyle=CLASSES[c].color; x.beginPath(); x.arc(162,170,50,0,7); x.fill(); } } }
 function setBody(b){ S.body=b; save(); $("pBodyA").classList.toggle("on",b==="a"); $("pBodyB").classList.toggle("on",b==="b"); $("hBody").textContent="見た目: "+b.toUpperCase(); drawPick(); renderAvatar(); }
 $("pBodyA").onclick=()=>setBody("a"); $("pBodyB").onclick=()=>setBody("b");
 $("hBody").onclick=()=>{ setBody(S.body==="a"?"b":"a"); toast("見た目を切り替えた"); };
