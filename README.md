@@ -2,7 +2,8 @@
 
 スマホ向け見下ろしアクションRPG。1回60秒。45秒雑魚を狩り、残り15秒でボス。素材で装備を作って、次の階へ。
 
-- 公開先: https://claude.ai/artifact/U3L3FBSfscfnEsvg1NYN51
+- 公開先(本番): https://wittydesign.github.io/dungeon60/ (GitHub Pages、master ブランチ直下)
+- 公開先(旧): https://claude.ai/artifact/U3L3FBSfscfnEsvg1NYN51
 - 本体: `index.html` (1ファイル)
 - 絵: `assets/` に透過PNGを置く。無ければ図形で描く。
 
