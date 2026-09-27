@@ -109,6 +109,26 @@ button[disabled]{opacity:.4;cursor:default;}
 @media (prefers-reduced-motion: reduce){ .toast{transition:none;} .bar i{transition:none;} }
 
 /* ---- plaza (TOP) ---- */
+.topbar{padding:8px 14px;padding-top:calc(8px + env(safe-area-inset-top,0px));background:linear-gradient(#1E1C38,#14132A);border-bottom:2px solid #7A6420;}
+.tb-left{display:flex;flex-direction:column;gap:4px;min-width:150px;}
+.tb-lv{font-size:13px;} .tb-lv b{font-size:15px;color:var(--gold);}
+.tb-xp{height:6px;border-radius:999px;background:rgba(0,0,0,.5);border:1px solid #7A6420;overflow:hidden;} .tb-xp i{display:block;height:100%;width:0%;background:linear-gradient(90deg,#F5C542,#FFE79A);}
+.tb-right{display:flex;gap:10px;align-items:center;font-size:14px;}
+.tb-right .gold,.tb-right .tok{background:rgba(0,0,0,.45);border:1px solid #7A6420;border-radius:999px;padding:3px 10px;display:inline-flex;align-items:center;gap:4px;font-weight:800;font-variant-numeric:tabular-nums;}
+.tb-right .tok img{width:16px;height:16px;}
+.tabbar{display:flex;align-items:flex-end;justify-content:space-around;padding:6px 6px;padding-bottom:calc(8px + env(safe-area-inset-bottom,0px));background:linear-gradient(#1E1C38,#0F0E1F);border-top:2px solid #7A6420;position:relative;}
+.tab{background:none;border:0;color:var(--ink2);font:inherit;font-weight:800;font-size:11px;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 8px;min-width:56px;}
+.tab.on{color:var(--gold);}
+.tab .ico{width:28px;height:28px;border-radius:8px;background:#2A2850;border:1px solid #7A6420;display:block;position:relative;}
+.tab.on .ico{background:#3A3370;box-shadow:0 0 10px rgba(245,197,66,.4);}
+.ico-home::after{content:"";position:absolute;left:7px;top:9px;width:14px;height:11px;background:#F5C542;clip-path:polygon(50% 0,100% 45%,85% 45%,85% 100%,15% 100%,15% 45%,0 45%);}
+.ico-shop::after{content:"";position:absolute;left:6px;top:8px;width:16px;height:12px;background:#F5C542;clip-path:polygon(0 30%,100% 30%,90% 100%,10% 100%);}
+.ico-bag::after{content:"";position:absolute;left:7px;top:7px;width:14px;height:15px;background:#F5C542;border-radius:3px 3px 5px 5px;}
+.ico-gear::after{content:"";position:absolute;left:7px;top:7px;width:14px;height:14px;border-radius:50%;border:4px dotted #F5C542;box-sizing:border-box;}
+.tab.gatebtn{margin-top:-30px;min-width:84px;padding:0 4px 2px;}
+.gatecore{width:72px;height:72px;border-radius:50%;border:4px solid #F5C542;background:radial-gradient(circle at 50% 45%,#D9C4FF 0%,#8A5CFF 35%,#3A2A7A 70%,#14132A 100%);box-shadow:0 0 24px rgba(181,140,255,.7),0 4px 0 #7A6420;display:block;animation:gateglow 2.4s ease-in-out infinite;}
+.gatelbl{color:var(--gold);font-size:12px;margin-top:2px;}
+.hot.gate .ring{display:none!important;}
 .plaza{padding:0!important;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;overflow:hidden;}
 .town{width:100%;min-height:0;}
 .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 16px;padding-top:calc(10px + env(safe-area-inset-top,0px));font-size:14px;font-weight:800;background:var(--panel);border-bottom:1px solid var(--line);}
@@ -191,18 +211,55 @@ button[disabled]{opacity:.4;cursor:default;}
 
   <div class="screen plaza" id="home">
     <div class="topbar">
-      <span>所持金 <span class="gold" id="hGold">0</span>G</span>
-      <span>傷薬 <b id="hPot">0</b></span>
-      <span><span id="hCls">剣士</span> Lv <b id="hLv">1</b></span>
+      <div class="tb-left"><div class="tb-lv"><span id="hCls">剣士</span> <b>Lv <span id="hLv">1</span></b></div><div class="tb-xp"><i id="hXpBar"></i></div></div>
+      <div class="tb-right"><span class="gold"><span id="hGold">0</span>G</span><span class="tok"><img src="assets/mat_token.png" alt="" onerror="this.style.display='none'"><span id="hTok">0</span></span></div>
+      <span id="hPot" hidden>0</span>
     </div>
     <div class="town" id="town">
       <div class="sky"></div>
       <div class="ground"></div>
-      <button class="hot gate" id="hotGate" aria-label="ゲート"><span class="ring"></span><span class="taparea tapgate"></span><span class="lbl">ゲート</span><small id="hotGateDest">苔の谷</small><small style="color:#fff;opacity:.85">タップして出発</small></button>
-      <button class="hot" id="hotCraft" style="left:4%;top:46%"><span class="house craft"></span><span class="taparea"></span><span class="lbl">工房</span></button>
-      <button class="hot" id="hotShop" style="right:4%;top:46%"><span class="house shop"></span><span class="taparea"></span><span class="lbl">薬屋</span></button>
-      <button class="hot" id="hotBoard" style="right:5%;top:19%"><span class="house board"></span><span class="taparea"></span><span class="lbl">掲示板</span><small>準備中</small></button>
+      <button class="hot gate" id="hotGate" aria-label="ゲート"><span class="ring"></span><span class="taparea tapgate"></span><span class="lbl" id="hotGateDest">苔の谷</span></button>
       <button class="hot me" id="hotMe" aria-label="自分"><canvas id="avatar" width="528" height="704"></canvas><span class="lbl">じぶん</span></button>
+    </div>
+
+    <nav class="tabbar">
+      <button class="tab on" id="tabHome"><span class="ico ico-home"></span>ホーム</button>
+      <button class="tab" id="tabShop"><span class="ico ico-shop"></span>ショップ</button>
+      <button class="tab gatebtn" id="tabGate"><span class="gatecore"></span><span class="gatelbl">ゲート</span></button>
+      <button class="tab" id="tabItems"><span class="ico ico-bag"></span>アイテム</button>
+      <button class="tab" id="tabSet"><span class="ico ico-gear"></span>設定</button>
+    </nav>
+
+    <div class="sheet" id="shShopMenu" hidden>
+      <div class="sheethead"><h2>ショップ</h2><button class="ghost small closeSheet">閉じる</button></div>
+      <div class="cls">
+        <button class="pickcard" id="goCraft"><div><div class="nm">工房</div><div class="ds">素材で武器と防具を作る</div></div></button>
+        <button class="pickcard" id="goPotion"><div><div class="nm">薬屋</div><div class="ds">傷薬を買う</div></div></button>
+      </div>
+    </div>
+    <div class="sheet" id="shItems" hidden>
+      <div class="sheethead"><h2>アイテム</h2><button class="ghost small closeSheet">閉じる</button></div>
+      <h2 style="font-size:15px;margin:6px 0">素材</h2>
+      <div class="mat" id="hMat2"></div>
+      <h2 style="font-size:15px;margin:14px 0 6px">持ち物</h2>
+      <div class="mat"><span class="chip"><i class="dot" style="background:#7BE495"></i>傷薬 <b id="hPot2">0</b></span></div>
+      <h2 style="font-size:15px;margin:14px 0 6px">装備中</h2>
+      <div class="stat">
+        <div><b>武器</b><span id="iWep" style="font-size:15px">木の剣</span></div>
+        <div><b>防具</b><span id="iArm" style="font-size:15px">布の服</span></div>
+        <div><b>兜 / 手袋</b><span id="iG1" style="font-size:13px">なし / なし</span></div>
+        <div><b>靴 / お守り</b><span id="iG2" style="font-size:13px">なし / なし</span></div>
+      </div>
+    </div>
+    <div class="sheet" id="shSet" hidden>
+      <div class="sheethead"><h2>設定</h2><button class="ghost small closeSheet">閉じる</button></div>
+      <div class="row" style="margin-bottom:10px"><span>見た目</span><button class="ghost small" id="hBody">見た目: A</button></div>
+      <div class="row" style="margin-bottom:10px"><span>職業: <b id="hCls2">剣士</b></span><button class="ghost small" id="bJob">転職(準備中)</button></div>
+      <h2 style="font-size:15px;margin-top:16px">セーブコード</h2>
+      <p class="sub" style="margin-bottom:8px">キャラが消えたときの保険。コピーしてメモに貼っておく。</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="ghost small" id="bSaveCopy">セーブコードをコピー</button><button class="ghost small" id="bSaveShow">表示</button><button class="ghost small" id="bSaveLoad">貼って復元</button></div>
+      <textarea id="saveBox" rows="3" style="width:100%;margin-top:8px;font:12px monospace;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px;box-sizing:border-box" placeholder="ここにセーブコードを貼って「貼って復元」"></textarea>
+      <p class="example" style="margin-top:14px">操作: 画面左側をなぞって移動、右の攻撃と回避ボタン。攻撃は一番近い敵を自動で狙う。押しっぱなしで連続攻撃。PCはWASDまたは矢印で移動、Jで攻撃、Kで回避、Lで技、Hで傷薬。</p>
     </div>
 
     <div class="sheet" id="shCraft" hidden>
@@ -216,7 +273,6 @@ button[disabled]{opacity:.4;cursor:default;}
     </div>
     <div class="sheet" id="shChar" hidden>
       <div class="sheethead"><h2>じぶん</h2><button class="ghost small closeSheet">閉じる</button></div>
-      <div class="row" style="margin-bottom:8px"><div><b style="font-size:12px;color:var(--ink2)">職業</b><div style="font-size:18px;font-weight:800" id="hCls2">剣士</div></div><div style="display:flex;gap:6px"><button class="ghost small" id="hBody">見た目: A</button><button class="ghost small" id="bJob">転職(準備中)</button></div></div>
       <div class="row" style="margin-bottom:6px"><span style="font-size:12px;color:var(--ink2)">次のレベルまで</span><span id="hXp" style="font-weight:800;font-variant-numeric:tabular-nums">0 / 20</span></div>
       <div class="stat">
         <div><b>HP</b><span id="hHp">100</span></div>
@@ -230,10 +286,6 @@ button[disabled]{opacity:.4;cursor:default;}
       </div>
       <div class="row" style="margin-top:14px"><h2 style="margin:0">スキル</h2><span>残りSP <span class="sp" id="hSp">0</span></span></div>
       <div id="skills" style="margin-top:6px"></div>
-      <h2 style="margin-top:16px">セーブコード</h2>
-      <p class="sub" style="margin-bottom:8px">ブラウザを閉じてキャラが消えたときの保険。コピーしてメモに貼っておく。</p>
-      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="ghost small" id="bSaveCopy">セーブコードをコピー</button><button class="ghost small" id="bSaveShow">表示</button><button class="ghost small" id="bSaveLoad">貼って復元</button></div>
-      <textarea id="saveBox" rows="3" style="width:100%;margin-top:8px;font:12px monospace;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px;box-sizing:border-box" placeholder="ここにセーブコードを貼って「貼って復元」"></textarea>
     </div>
     <div class="sheet" id="shMap" hidden>
       <div class="sheethead"><h2>行き先</h2><button class="ghost small closeSheet">閉じる</button></div>
@@ -419,7 +471,10 @@ function renderSkills(){
 }
 function renderHome(){
   renderAvatar(); renderSkills();
-  $("hGold").textContent=S.gold; $("hPot").textContent=S.potions; $("bBuyPot").disabled=S.gold<POT_PRICE;
+  $("hGold").textContent=S.gold; $("hPot").textContent=S.potions; $("hPot2").textContent=S.potions; $("hTok").textContent=S.mats.token||0; $("bBuyPot").disabled=S.gold<POT_PRICE;
+  $("hXpBar").style.width=Math.min(100,S.xp/xpNeed(S.lv)*100)+"%";
+  const gn2=slot=>gear(slot)?gear(slot).name:"なし"; $("iWep").textContent=wep().name; $("iArm").textContent=arm().name; $("iG1").textContent=gn2("helm")+" / "+gn2("glove"); $("iG2").textContent=gn2("boot")+" / "+gn2("charm");
+  { const m2=$("hMat2"); m2.innerHTML=""; for(const k in MATS){ const c=document.createElement("span"); c.className="chip"; c.innerHTML=matIcon(k)+MATS[k].name+' <b>'+S.mats[k]+'</b>'; m2.appendChild(c); } }
   $("hCls").textContent=cls().name; $("hBody").textContent="見た目: "+S.body.toUpperCase();
   $("hLv").textContent=S.lv; $("hXp").textContent=S.xp+" / "+xpNeed(S.lv);
   $("hHp").textContent=maxHp(); $("hAtk").textContent=atkPow();
@@ -457,13 +512,18 @@ $("bSaveCopy").onclick=async()=>{ const c=saveCode(); $("saveBox").value=c; try{
 $("bSaveLoad").onclick=()=>{ try{ loadCode($("saveBox").value); load(); renderHome(); toast("復元した"); }catch(e){ toast("復元できない: "+e.message); } };
 // ---- plaza sheets ----
 function openSheet(id){ for(const el of document.querySelectorAll(".sheet"))el.hidden=true; const sh=$(id); sh.hidden=false; sh.scrollTop=0; }
-function closeSheets(){ for(const el of document.querySelectorAll(".sheet"))el.hidden=true; }
+function closeSheets(){ for(const el of document.querySelectorAll(".sheet"))el.hidden=true; setTab("tabHome"); }
 for(const b of document.querySelectorAll(".closeSheet"))b.onclick=closeSheets;
-$("hotCraft").onclick=()=>openSheet("shCraft");
-$("hotShop").onclick=()=>openSheet("shShop");
 $("hotMe").onclick=()=>openSheet("shChar");
-$("hotBoard").onclick=()=>toast("掲示板は協力プレイと一緒に");
 $("hotGate").onclick=()=>{ renderMap(); openSheet("shMap"); };
+function setTab(id){ for(const t of document.querySelectorAll(".tab"))t.classList.toggle("on",t.id===id); }
+$("tabHome").onclick=()=>{ closeSheets(); setTab("tabHome"); };
+$("tabShop").onclick=()=>{ openSheet("shShopMenu"); setTab("tabShop"); };
+$("tabGate").onclick=()=>{ renderMap(); openSheet("shMap"); setTab("tabGate"); };
+$("tabItems").onclick=()=>{ renderHome(); openSheet("shItems"); setTab("tabItems"); };
+$("tabSet").onclick=()=>{ openSheet("shSet"); setTab("tabSet"); };
+$("goCraft").onclick=()=>openSheet("shCraft");
+$("goPotion").onclick=()=>openSheet("shShop");
 // ---- jobs (狩りの目的) ----
 const JOB_TYPES = ["kill","elite","mat","safe"];
 let pendingJob = null;
