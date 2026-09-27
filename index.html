@@ -230,6 +230,10 @@ button[disabled]{opacity:.4;cursor:default;}
       </div>
       <div class="row" style="margin-top:14px"><h2 style="margin:0">スキル</h2><span>残りSP <span class="sp" id="hSp">0</span></span></div>
       <div id="skills" style="margin-top:6px"></div>
+      <h2 style="margin-top:16px">セーブコード</h2>
+      <p class="sub" style="margin-bottom:8px">ブラウザを閉じてキャラが消えたときの保険。コピーしてメモに貼っておく。</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="ghost small" id="bSaveCopy">セーブコードをコピー</button><button class="ghost small" id="bSaveShow">表示</button><button class="ghost small" id="bSaveLoad">貼って復元</button></div>
+      <textarea id="saveBox" rows="3" style="width:100%;margin-top:8px;font:12px monospace;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px;box-sizing:border-box" placeholder="ここにセーブコードを貼って「貼って復元」"></textarea>
     </div>
     <div class="sheet" id="shMap" hidden>
       <div class="sheethead"><h2>行き先</h2><button class="ghost small closeSheet">閉じる</button></div>
@@ -445,6 +449,12 @@ function renderHome(){
 }
 $("bBuyPot").onclick=()=>{ if(S.gold<POT_PRICE)return; S.gold-=POT_PRICE; S.potions++; save(); renderHome(); toast("傷薬を買った"); };
 $("bJob").onclick=()=>toast("転職チケットは準備中");
+// ---- save code (export/import) ----
+function saveCode(){ return "D60:"+btoa(unescape(encodeURIComponent(JSON.stringify(S)))); }
+function loadCode(t){ t=(t||"").trim(); if(!t.startsWith("D60:"))throw new Error("形式が違う"); const j=JSON.parse(decodeURIComponent(escape(atob(t.slice(4))))); if(!j||!j.lv)throw new Error("中身が違う"); S=Object.assign(def(),j); save(); }
+$("bSaveShow").onclick=()=>{ $("saveBox").value=saveCode(); };
+$("bSaveCopy").onclick=async()=>{ const c=saveCode(); $("saveBox").value=c; try{ await navigator.clipboard.writeText(c); toast("コピーした"); }catch(e){ $("saveBox").select(); toast("長押しでコピーして"); } };
+$("bSaveLoad").onclick=()=>{ try{ loadCode($("saveBox").value); load(); renderHome(); toast("復元した"); }catch(e){ toast("復元できない: "+e.message); } };
 // ---- plaza sheets ----
 function openSheet(id){ for(const el of document.querySelectorAll(".sheet"))el.hidden=true; const sh=$(id); sh.hidden=false; sh.scrollTop=0; }
 function closeSheets(){ for(const el of document.querySelectorAll(".sheet"))el.hidden=true; }
