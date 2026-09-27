@@ -220,7 +220,16 @@ body.txtui #bBuyPot{color:transparent!important;background:var(--tb-buy,none) ce
 .topbar.img .tb-xp{background:rgba(0,0,0,.55);}
 
 .tab .ico.imgico::after{display:none;}
-body.panelimg .sheet{border-image:var(--panelimg) 34 fill / 30px stretch;background:transparent;border-width:30px;border-style:solid;border-radius:0;padding:6px 18px 6px 18px;padding-bottom:calc(14px + env(safe-area-inset-bottom,0px));}
+/* the sheet itself never scrolls; .sheetbody scrolls inside, and the frame is an overlay pinned to the sheet box */
+.sheet{display:flex;flex-direction:column;overflow:hidden;}
+.sheetbody{overflow-y:auto;min-height:0;flex:1;}
+body.panelimg .sheet{background:#151433;border:0;border-radius:18px 18px 0 0;padding:46px 40px 46px 40px;padding-bottom:calc(50px + env(safe-area-inset-bottom,0px));box-shadow:none;}
+.sheet{box-sizing:border-box;}
+.sheetframe{display:none;}
+body.panelimg .sheetframe{display:block;position:absolute;left:0;top:0;right:0;bottom:0;border:40px solid transparent;border-image:var(--panelimg) 62 fill / 40px stretch;pointer-events:none;z-index:0;}
+body.panelimg .sheetbody{position:relative;z-index:1;}
+body.panelimg .sheet{background:transparent;}
+body.panelimg .sheetbody{padding:2px 4px;}
 body.panelimg .sheethead h2{background:var(--ribbon,none) center/100% 100% no-repeat;padding:6px 34px;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.6);font-size:16px;}
 body.btnimg button.big{background:var(--btngold) center/100% 100% no-repeat;border-radius:0;color:#14132A;text-shadow:0 1px 0 rgba(255,255,255,.4);}
 body.btnimg #bBoss{background:var(--btndark) center/100% 100% no-repeat!important;color:#FFE79A!important;}
@@ -589,7 +598,8 @@ $("bSaveShow").onclick=()=>{ $("saveBox").value=saveCode(); };
 $("bSaveCopy").onclick=async()=>{ const c=saveCode(); $("saveBox").value=c; try{ await navigator.clipboard.writeText(c); toast("コピーした"); }catch(e){ $("saveBox").select(); toast("長押しでコピーして"); } };
 $("bSaveLoad").onclick=()=>{ try{ loadCode($("saveBox").value); load(); renderHome(); toast("復元した"); }catch(e){ toast("復元できない: "+e.message); } };
 // ---- plaza sheets ----
-function openSheet(id){ for(const el of document.querySelectorAll(".sheet"))el.hidden=true; const sh=$(id); sh.hidden=false; sh.scrollTop=0; }
+for(const sh of document.querySelectorAll(".sheet")){ const body=document.createElement("div"); body.className="sheetbody"; while(sh.firstChild)body.appendChild(sh.firstChild); sh.appendChild(body); const fr=document.createElement("div"); fr.className="sheetframe"; sh.appendChild(fr); }
+function openSheet(id){ for(const el of document.querySelectorAll(".sheet"))el.hidden=true; const sh=$(id); sh.hidden=false; const b=sh.querySelector(".sheetbody"); if(b)b.scrollTop=0; }
 function closeSheets(){ for(const el of document.querySelectorAll(".sheet"))el.hidden=true; setTab("tabHome"); }
 for(const b of document.querySelectorAll(".closeSheet"))b.onclick=closeSheets;
 $("hotMe").onclick=()=>openSheet("shChar");
