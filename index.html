@@ -368,7 +368,7 @@ function avatar(c,x,y,scale,flip,clsId,wepId,armId){
 
 const ECOL = {slime:"#E85D8A", wing:"#B58CFF", archer:"#FFB347", elite:"#FF5F8F"};
 const FLOORS = ["苔の谷","骨の王国","歯車の都","水路の街","溶岩の工房","霧の墓所","天空の祭壇","竜の国"];
-const floorName = f => FLOORS[(f-1)%FLOORS.length]+(f>FLOORS.length?" 奥"+(Math.floor((f-1)/FLOORS.length)+1):"");
+const floorName = f => "苔の谷"+(f>1?" 奥"+f:"");
 
 // ---------- save ----------
 const KEY = "dgn60_save_v1";
@@ -488,12 +488,15 @@ const WORLD_INFO = [
 ];
 function renderMap(){
   const m=$("map"); m.innerHTML="";
-  WORLD_INFO.forEach((w,i)=>{ const f=i+1; const b=document.createElement("button"); b.className="pin"+(f>S.maxFloor?" locked":"")+(f===S.floor?" cur":""); b.style.left=w.x+"%"; b.style.top=w.y+"%"; b.innerHTML='<i></i><span>'+w.n+'</span>';
-    b.onclick=()=>{ if(f>S.maxFloor){ toast("まだ開いていない。前の主を倒そう"); return; } S.floor=f; save(); renderHome(); renderMap(); };
+  WORLD_INFO.forEach((w,i)=>{ const open=i===0; const b=document.createElement("button"); b.className="pin"+(open?" cur":" locked"); b.style.left=w.x+"%"; b.style.top=w.y+"%"; b.innerHTML='<i></i><span>'+w.n+(open?"":"(準備中)")+'</span>';
+    b.onclick=()=>{ if(!open){ toast("このゲートはまだ開かない"); return; } renderMap(); };
     m.appendChild(b); });
-  const w=WORLD_INFO[(S.floor-1)%WORLD_INFO.length]; const deep=Math.floor((S.floor-1)/WORLD_INFO.length);
+  const w=WORLD_INFO[0]; const deep=S.floor-1;
   if(!pendingJob||pendingJob.floor!==S.floor){ pendingJob=makeJob(S.floor); pendingJob.floor=S.floor; }
-  $("mapInfo").innerHTML='<b>'+floorName(S.floor)+'</b><br>住人: '+w.who+'<br>主: '+w.boss+(deep>0?'<br>奥'+(deep+1)+': 敵がかなり強い':'')+'<div style="margin-top:8px;padding:8px 10px;border-radius:10px;background:var(--panel2);color:var(--ink)"><b style="font-size:13px;color:#7EC8F5">今回の仕事(狩り)</b><br>「'+pendingJob.text+'」<br><span style="font-size:12px;color:var(--ink2)">達成で '+(60+20*S.floor)+'G と 依頼の証</span></div>';
+  const depthSel = '<div class="dest" style="margin:6px 0"><button class="ghost small" id="dDown" aria-label="手前へ">−</button><span style="font-size:15px">'+floorName(S.floor)+'</span><button class="ghost small" id="dUp" aria-label="奥へ">＋</button><span style="font-size:11px;color:var(--ink2)">到達 奥'+S.maxFloor+'</span></div>';
+  $("mapInfo").innerHTML='<b>'+w.n+'</b><br>住人: '+w.who+'<br>主: '+w.boss+depthSel+(deep>0?'奥ほど敵が強く、素材が多い<br>':'')+'<div style="margin-top:8px;padding:8px 10px;border-radius:10px;background:var(--panel2);color:var(--ink)"><b style="font-size:13px;color:#7EC8F5">今回の仕事(狩り)</b><br>「'+pendingJob.text+'」<br><span style="font-size:12px;color:var(--ink2)">達成で '+(60+20*S.floor)+'G と 依頼の証</span></div>';
+  $("dDown").onclick=()=>{ if(S.floor>1){ S.floor--; save(); renderHome(); renderMap(); } };
+  $("dUp").onclick=()=>{ if(S.floor<S.maxFloor){ S.floor++; save(); renderHome(); renderMap(); } else toast("主を倒すと奥が開く"); };
 }
 let pickSel=null;
 function drawPick(){ $("pBodyA").classList.toggle("on",S.body==="a"); $("pBodyB").classList.toggle("on",S.body==="b"); for(const [id,c] of [["pcSword","sword"],["pcMage","mage"]]){ const cv2=$(id), x=cv2.getContext("2d"); x.clearRect(0,0,216,288); if(!avatar(x,108,144,4.5,false,c,CLASSES[c].weapons[0].id,"a0")){ x.fillStyle=CLASSES[c].color; x.beginPath(); x.arc(108,150,50,0,7); x.fill(); } } }
@@ -785,7 +788,7 @@ function endRun(reason){
   const bossMode = G.mode==="boss";
   $("rTag").textContent = reason==="boss"?"主を討伐":reason==="dead"?"押し戻された":bossMode?"主は逃げた":"ゲートが閉じた";
   $("rTitle").textContent = reason==="boss"?floorName(G.floor)+" 制覇!":reason==="dead"?"素材を半分落とした":bossMode?"削り切れなかった":"帰還した";
-  $("rSub").textContent = reason==="boss"?"次の行き先「"+floorName(G.floor+1)+"」が開いた。":reason==="dead"?"回避で距離を取ると楽になる。":bossMode?"装備とスキルを整えて、もう一度。":"狩った分だけ持ち帰った。精鋭を倒すと素材が多い。";
+  $("rSub").textContent = reason==="boss"?"「"+floorName(G.floor+1)+"」が開いた。敵は強く、素材は多い。":reason==="dead"?"回避で距離を取ると楽になる。":bossMode?"装備とスキルを整えて、もう一度。":"狩った分だけ持ち帰った。精鋭を倒すと素材が多い。";
   $("rXp").textContent="+"+G.xp; $("rGold").textContent="+"+G.gold+"G";
   $("rJob").hidden=!G.job; if(G.job){ $("rJobText").textContent="仕事「"+G.job.text+"」"; $("rJobRes").textContent= jobOk?"達成! +"+jobGold+"G、依頼の証":"未達成"; $("rJobRes").style.color=jobOk?"#7BE495":"var(--ink2)"; } $("rPotRow").hidden=G.gotPot===0; $("rPot").textContent="+"+G.gotPot;
   $("rLvup").hidden = true; $("rLvText").textContent="Lv "+before+" → Lv "+S.lv; $("rSp").textContent="SP +"+((S.lv-before)*SP_PER_LV);
