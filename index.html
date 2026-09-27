@@ -351,12 +351,14 @@ const AV_W=48, AV_H=64;
 for(const k in SPR_LIST){ const im=new Image(); im.onload=()=>{ SPR[k]=im; renderAvatar(); if(!$("pick").hidden)drawPick(); if(k.startsWith("mat_")&&!$("home").hidden)renderHome(); }; im.onerror=()=>{}; im.src=SPR_LIST[k]; }
 function spr(key,x,y,size,flip,c){ c=c||ctx; const im=SPR[key]; if(!im)return false; c.save(); c.imageSmoothingEnabled=true; c.imageSmoothingQuality="high"; c.translate(x,y); if(flip)c.scale(-1,1); c.drawImage(im,-size/2,-size/2,size,size); c.restore(); return true; }
 // layered avatar: body -> hair -> armor -> weapon. Returns false when the body sprite is missing.
+// Weapons are standalone upright sprites (384x800) whose grip point is at GRIP; they are anchored to the body's hand at HAND.
+const HAND={x:272,y:352}, GRIP={x:192,y:560}, WEAP_W=384, WEAP_H=800, BODY_W=384;
 function avatar(c,x,y,scale,flip,clsId,wepId,armId){
-  const bodyKey = SPR["body_"+S.body] ? "body_"+S.body : (SPR.body_a ? "body_a" : null); if(!bodyKey)return false; const w=AV_W*scale, h=AV_H*scale;
+  const bodyKey = SPR["body_"+S.body] ? "body_"+S.body : (SPR.body_a ? "body_a" : null); if(!bodyKey)return false; const w=AV_W*scale, h=AV_H*scale, f=w/BODY_W;
   c.save(); c.imageSmoothingEnabled=true; c.imageSmoothingQuality="high"; c.translate(x,y); if(flip)c.scale(-1,1);
-  const sword = wepId && wepId[0]==="w";
-  const order = sword ? ["weapon_"+wepId, bodyKey, "hair", "armor_"+armId] : [bodyKey, "hair", "armor_"+armId, "weapon_"+wepId];
-  for(const k of order){ const im=SPR[k]; if(im)c.drawImage(im,-w/2,-h/2,w,h); }
+  const wi=SPR["weapon_"+wepId];
+  if(wi){ const sword = wepId[0]==="w"; const ang=(sword?38:12)*Math.PI/180; c.save(); c.translate(-w/2+HAND.x*f,-h/2+HAND.y*f); c.rotate(ang); c.drawImage(wi,-GRIP.x*f,-GRIP.y*f,WEAP_W*f,WEAP_H*f); c.restore(); }
+  for(const k of [bodyKey,"hair","armor_"+armId]){ const im=SPR[k]; if(im)c.drawImage(im,-w/2,-h/2,w,h); }
   c.restore(); return true;
 }
 

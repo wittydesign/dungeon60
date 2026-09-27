@@ -161,145 +161,145 @@
   },
   {
     "name": "weapon_m3.png",
-    "width": 1086,
-    "height": 1448,
+    "width": 384,
+    "height": 512,
     "alpha": true,
-    "transparentPixels": 1461092,
-    "partialPixels": 110853,
-    "opaquePixels": 583,
+    "transparentPixels": 182005,
+    "partialPixels": 13825,
+    "opaquePixels": 778,
     "bounds": [
-      649,
-      69,
-      1060,
-      1395
+      229,
+      25,
+      374,
+      492
     ],
     "status": "ok"
   },
   {
     "name": "weapon_m4.png",
-    "width": 1086,
-    "height": 1448,
+    "width": 384,
+    "height": 512,
     "alpha": true,
-    "transparentPixels": 1450814,
-    "partialPixels": 121108,
-    "opaquePixels": 606,
+    "transparentPixels": 180572,
+    "partialPixels": 15171,
+    "opaquePixels": 865,
     "bounds": [
-      609,
-      37,
-      1056,
-      1414
+      215,
+      13,
+      373,
+      499
     ],
     "status": "ok"
   },
   {
     "name": "enemy_slime.png",
-    "width": 1254,
-    "height": 1254,
+    "width": 256,
+    "height": 256,
     "alpha": true,
-    "transparentPixels": 1056475,
-    "partialPixels": 514786,
-    "opaquePixels": 1255,
+    "transparentPixels": 43324,
+    "partialPixels": 21688,
+    "opaquePixels": 524,
     "bounds": [
-      114,
-      222,
-      1141,
-      1023
+      23,
+      45,
+      232,
+      208
     ],
     "status": "ok"
   },
   {
     "name": "enemy_bat.png",
-    "width": 1254,
-    "height": 1254,
+    "width": 256,
+    "height": 256,
     "alpha": true,
-    "transparentPixels": 1117677,
-    "partialPixels": 453001,
-    "opaquePixels": 1838,
+    "transparentPixels": 45540,
+    "partialPixels": 19315,
+    "opaquePixels": 681,
     "bounds": [
-      15,
-      222,
-      1236,
-      963
+      3,
+      45,
+      251,
+      196
     ],
     "status": "ok"
   },
   {
     "name": "enemy_archer.png",
-    "width": 1254,
-    "height": 1254,
+    "width": 256,
+    "height": 256,
     "alpha": true,
-    "transparentPixels": 992487,
-    "partialPixels": 578096,
-    "opaquePixels": 1933,
+    "transparentPixels": 39907,
+    "partialPixels": 24591,
+    "opaquePixels": 1038,
     "bounds": [
-      155,
-      67,
-      1214,
-      1185
+      32,
+      14,
+      247,
+      241
     ],
     "status": "ok"
   },
   {
     "name": "boss_horn.png",
-    "width": 1254,
-    "height": 1254,
+    "width": 384,
+    "height": 384,
     "alpha": true,
-    "transparentPixels": 813088,
-    "partialPixels": 757314,
-    "opaquePixels": 2114,
+    "transparentPixels": 74546,
+    "partialPixels": 71206,
+    "opaquePixels": 1704,
     "bounds": [
-      11,
-      118,
-      1246,
-      1147
+      3,
+      37,
+      381,
+      350
     ],
     "status": "ok"
   },
   {
     "name": "mat_slime.png",
-    "width": 1254,
-    "height": 1254,
+    "width": 96,
+    "height": 96,
     "alpha": true,
-    "transparentPixels": 1049764,
-    "partialPixels": 522045,
-    "opaquePixels": 707,
+    "transparentPixels": 5835,
+    "partialPixels": 3233,
+    "opaquePixels": 148,
     "bounds": [
-      232,
-      96,
-      1039,
-      1156
+      18,
+      7,
+      79,
+      88
     ],
     "status": "ok"
   },
   {
     "name": "mat_wing.png",
-    "width": 1254,
-    "height": 1254,
+    "width": 96,
+    "height": 96,
     "alpha": true,
-    "transparentPixels": 1178880,
-    "partialPixels": 392362,
-    "opaquePixels": 1274,
+    "transparentPixels": 6488,
+    "partialPixels": 2520,
+    "opaquePixels": 208,
     "bounds": [
-      111,
-      131,
-      1167,
-      1127
+      8,
+      10,
+      88,
+      85
     ],
     "status": "ok"
   },
   {
     "name": "mat_horn.png",
-    "width": 1254,
-    "height": 1254,
+    "width": 96,
+    "height": 96,
     "alpha": true,
-    "transparentPixels": 1062998,
-    "partialPixels": 507722,
-    "opaquePixels": 1796,
+    "transparentPixels": 5827,
+    "partialPixels": 3169,
+    "opaquePixels": 220,
     "bounds": [
-      54,
-      86,
-      1206,
-      1170
+      4,
+      7,
+      91,
+      89
     ],
     "status": "ok"
   },
@@ -309,8 +309,8 @@
     "height": 1254,
     "alpha": true,
     "transparentPixels": 0,
-    "partialPixels": 0,
-    "opaquePixels": 1572516,
+    "partialPixels": 1572516,
+    "opaquePixels": 0,
     "bounds": [
       0,
       0,
@@ -321,8 +321,8 @@
     "edgeDifferences": {
       "horizontal": 0,
       "vertical": 0,
-      "normalHorizontal": 4.314162755797569,
-      "normalVertical": 4.84307433557654
+      "normalHorizontal": 6.422093832855373,
+      "normalVertical": 7.338541885439857
     }
   },
   {
@@ -331,8 +331,8 @@
     "height": 1254,
     "alpha": true,
     "transparentPixels": 0,
-    "partialPixels": 0,
-    "opaquePixels": 1572516,
+    "partialPixels": 1572516,
+    "opaquePixels": 0,
     "bounds": [
       0,
       0,
@@ -343,8 +343,8 @@
     "edgeDifferences": {
       "horizontal": 0,
       "vertical": 0,
-      "normalHorizontal": 4.554411252441244,
-      "normalVertical": 5.901083333015118
+      "normalHorizontal": 7.0195855306117,
+      "normalVertical": 9.368262369144462
     }
   }
 ]
