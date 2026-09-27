@@ -85,6 +85,7 @@ button[disabled]{opacity:.4;cursor:default;}
 .overlay .count.go{color:var(--player);}
 .overlay .flash{font-size:40px;font-weight:800;padding:14px 28px;border-radius:16px;background:rgba(20,19,42,.85);border:2px solid var(--gold);}
 .overlay .flash.bad{border-color:var(--boss);color:var(--boss);}
+.overlay .flash.imgtitle{color:transparent!important;background-size:100% 100%;background-repeat:no-repeat;background-color:transparent!important;border:0!important;width:min(80vw,360px);height:calc(min(80vw,360px)/5);padding:0;}
 .xpwrap{margin-top:10px;}
 .xpwrap .lab{display:flex;justify-content:space-between;font-size:12px;color:var(--ink2);margin-bottom:4px;}
 .xpbar{height:12px;border-radius:999px;background:rgba(0,0,0,.45);overflow:hidden;}
@@ -179,6 +180,17 @@ button[disabled]{opacity:.4;cursor:default;}
 .mapinfo b{color:var(--ink);font-size:15px;}
 
 
+
+/* ---- battle UI art ---- */
+.btn.imgbtn{background-color:transparent!important;background-size:contain!important;background-repeat:no-repeat!important;background-position:center!important;box-shadow:none!important;color:transparent;font-size:0;}
+.btn.imgbtn.potimg b{color:#fff;font-size:15px;position:absolute;right:2px;top:0;background:#14132A;border-radius:999px;padding:0 6px;border:1px solid var(--gold);}
+.btn.imgbtn.pot{position:relative;}
+.btn.skill.imgbtn{background-image:var(--skillimg);}
+.btn.imgbtn .cd{border-radius:50%;}
+#timer.imgframe{background-size:100% 100%;background-repeat:no-repeat;padding:2px 22px;line-height:1.3;}
+.bar.imgframe{background-size:100% 100%!important;background-repeat:no-repeat;height:16px;padding:4px 10px;box-sizing:border-box;border-radius:0;background-color:transparent!important;}
+.bar.imgframe i{border-radius:999px;}
+.rankpill.rankframe{background:var(--rankimg) center/100% 100% no-repeat!important;padding:4px 16px;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.7);}
 /* ---- text-baked UI ---- */
 .tab.txtimg .ico,.tab.txtimg .gatecore,.tab.txtimg .gatelbl{display:none!important;}
 .tab.txtimg{color:transparent!important;font-size:0;width:64px;height:64px;background:var(--off) center/contain no-repeat;min-width:64px;padding:0;}
@@ -664,6 +676,7 @@ function startRun(mode){
   const f=S.floor, sc=1+0.25*(f-1);
   $("bPot").hidden=false; $("bPotN").textContent=S.potions;
   $("bSkill").hidden = sk(activeSkill().id)<=0; $("bSkillName").textContent=activeSkill().name.slice(0,4);
+  { const v=getComputedStyle(document.documentElement).getPropertyValue(S.cls==="sword"?"--skill-sword":"--skill-mage").trim(); if(v){ $("bSkill").classList.add("imgbtn"); $("bSkill").style.backgroundImage=v; } }
   $("intro").hidden=false; $("iFloor").textContent=floorName(f)+(mode==="boss"?" の主":""); $("iEq").textContent=cls().name+" / "+wep().name+" / "+arm().name; $("iCount").textContent=""; $("iCount").classList.remove("go");
   ensureQuests();
   const eliteN=depthMix(f).elite; G={t:RUN_TIME, mode, floor:f, sc, cls:S.cls, intro:4.2, ending:null, eliteT:eliteN>=2?[28,48]:eliteN===1?[40]:[], kc:{slime:0,wing:0,archer:0,elite:0,boss:0}, before:{lv:S.lv,xp:S.xp}, p:{x:ARENA/2,y:ARENA/2,r:14,hp:maxHp(),mhp:maxHp(),face:0,atkCd:0,dodgeCd:0,skCd:0,skMax:1,dash:0,inv:0,swing:0,spin:0,heal:0},
@@ -819,7 +832,9 @@ function jobHit(type){ G.kc[type]=(G.kc[type]||0)+1; questHud(); }
 function collectAll(){ for(const l of G.loot)pickup(l); G.loot=[]; }
 function beginEnd(reason){
   if(G.ending)return; G.ending={reason,t:1.3}; joy.active=false;
-  const ef=$("efText"); ef.textContent = reason==="boss"?"討伐完了!":reason==="dead"?"押し戻された…":G.mode==="boss"?"主は逃げた…":"ゲートが閉じた"; ef.classList.toggle("bad",reason==="dead"); $("endflash").hidden=false;
+  const ef=$("efText"); ef.textContent = reason==="boss"?"討伐完了!":reason==="dead"?"押し戻された…":G.mode==="boss"?"主は逃げた…":"ゲートが閉じた"; ef.classList.toggle("bad",reason==="dead");
+  { const key=reason==="boss"?"boss":reason==="dead"?"dead":"time"; const v=getComputedStyle(document.documentElement).getPropertyValue("--title-"+key).trim(); ef.classList.toggle("imgtitle",!!v); ef.style.backgroundImage=v||""; }
+  $("endflash").hidden=false;
   $("ctrl").hidden=true; $("hint").hidden=true;
 }
 
@@ -892,7 +907,9 @@ function draw(){
   ctx.globalAlpha=1;
   for(const q of G.parts){ ctx.globalAlpha=Math.max(0,q.t/0.5); ctx.fillStyle=q.c; ctx.fillRect(q.x-2,q.y-2,4,4); } ctx.globalAlpha=1;
   ctx.restore();
-  if(joy.active){ ctx.strokeStyle="rgba(255,255,255,.25)"; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(joy.ox,joy.oy,50,0,7); ctx.stroke(); let dx=joy.x-joy.ox,dy=joy.y-joy.oy; const l=Math.hypot(dx,dy); if(l>50){dx=dx/l*50;dy=dy/l*50;} ctx.fillStyle="rgba(255,255,255,.35)"; ctx.beginPath(); ctx.arc(joy.ox+dx,joy.oy+dy,22,0,7); ctx.fill(); }
+  if(joy.active){ let dx=joy.x-joy.ox,dy=joy.y-joy.oy; const l=Math.hypot(dx,dy); if(l>50){dx=dx/l*50;dy=dy/l*50;}
+    if(SPR.stick_base){ ctx.globalAlpha=0.85; spr("stick_base",joy.ox,joy.oy,120,false); spr("stick_knob",joy.ox+dx,joy.oy+dy,52,false); ctx.globalAlpha=1; }
+    else { ctx.strokeStyle="rgba(255,255,255,.25)"; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(joy.ox,joy.oy,50,0,7); ctx.stroke(); ctx.fillStyle="rgba(255,255,255,.35)"; ctx.beginPath(); ctx.arc(joy.ox+dx,joy.oy+dy,22,0,7); ctx.fill(); } }
 }
 function loop(now){ if(!running)return; const dt=Math.min(0.05,(now-last)/1000); last=now; update(dt); if(running)draw(); requestAnimationFrame(loop); }
 
@@ -969,6 +986,20 @@ function animateResult(kills, from, to, rows, lvup){
   tryImg("assets/ui/ui_btn_gold.png",u=>{ document.documentElement.style.setProperty("--btngold","url("+u+")"); document.body.classList.add("btnimg"); });
   tryImg("assets/ui/ui_btn_dark.png",u=>{ document.documentElement.style.setProperty("--btndark","url("+u+")"); });
   tryImg("assets/ui/ui_ribbon.png",u=>{ document.documentElement.style.setProperty("--ribbon","url("+u+")"); });
+  // ---- battle UI (assets/ui/battle) ----
+  const B="assets/ui/battle/";
+  tryImg(B+"btn_attack.png",u=>{ $("bAtk").classList.add("imgbtn"); $("bAtk").style.backgroundImage="url("+u+")"; });
+  tryImg(B+"btn_dodge.png",u=>{ $("bDodge").classList.add("imgbtn"); $("bDodge").style.backgroundImage="url("+u+")"; });
+  tryImg(B+"btn_potion.png",u=>{ $("bPot").classList.add("imgbtn","potimg"); $("bPot").style.backgroundImage="url("+u+")"; });
+  tryImg(B+"btn_skill_sword.png",u=>{ document.documentElement.style.setProperty("--skill-sword","url("+u+")"); });
+  tryImg(B+"btn_skill_mage.png",u=>{ document.documentElement.style.setProperty("--skill-mage","url("+u+")"); });
+  tryImg(B+"stick_base.png",u=>{ const im=new Image(); im.onload=()=>{ SPR.stick_base=im; }; im.src=u; });
+  tryImg(B+"stick_knob.png",u=>{ const im=new Image(); im.onload=()=>{ SPR.stick_knob=im; }; im.src=u; });
+  tryImg(B+"hud_timer.png",u=>{ $("timer").classList.add("imgframe"); $("timer").style.backgroundImage="url("+u+")"; });
+  tryImg(B+"hud_bar.png",u=>{ const el=$("hpbar").parentElement; el.classList.add("imgframe"); el.style.backgroundImage="url("+u+")"; });
+  tryImg(B+"hud_bossbar.png",u=>{ const el=$("bossbar"); el.classList.add("imgframe"); el.style.backgroundImage="url("+u+")"; });
+  tryImg(B+"hud_rank.png",u=>{ $("rankpill").classList.add("rankframe"); $("rankpill").style.setProperty("--rankimg","url("+u+")"); });
+  for(const [k,f] of [["boss","title_clear"],["time","title_return"],["dead","title_fail"]]) tryImg(B+f+".png",u=>document.documentElement.style.setProperty("--title-"+k,"url("+u+")"));
   // ---- text-baked UI (assets/ui/text): tabs with labels, buttons with labels, ribbons with titles ----
   const T="assets/ui/text/";
   for(const [id,name] of [["tabHome","home"],["tabShop","shop"],["tabGate","gate"],["tabItems","items"],["tabSet","settings"]]){
