@@ -354,7 +354,9 @@ function spr(key,x,y,size,flip,c){ c=c||ctx; const im=SPR[key]; if(!im)return fa
 function avatar(c,x,y,scale,flip,clsId,wepId,armId){
   const bodyKey = SPR["body_"+S.body] ? "body_"+S.body : (SPR.body_a ? "body_a" : null); if(!bodyKey)return false; const w=AV_W*scale, h=AV_H*scale;
   c.save(); c.imageSmoothingEnabled=true; c.imageSmoothingQuality="high"; c.translate(x,y); if(flip)c.scale(-1,1);
-  for(const k of [bodyKey,"hair","armor_"+armId,"weapon_"+wepId]){ const im=SPR[k]; if(im)c.drawImage(im,-w/2,-h/2,w,h); }
+  const sword = wepId && wepId[0]==="w";
+  const order = sword ? ["weapon_"+wepId, bodyKey, "hair", "armor_"+armId] : [bodyKey, "hair", "armor_"+armId, "weapon_"+wepId];
+  for(const k of order){ const im=SPR[k]; if(im)c.drawImage(im,-w/2,-h/2,w,h); }
   c.restore(); return true;
 }
 
