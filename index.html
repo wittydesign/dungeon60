@@ -522,13 +522,13 @@ function startRun(mode){
   $("home").hidden=true; $("result").hidden=true; $("hud").hidden=false; $("ctrl").hidden=false; $("hint").hidden=false;
   const f=S.floor, sc=1+0.25*(f-1);
   $("bPot").hidden=false; $("bPotN").textContent=S.potions;
-  $("jobline").style.color="#7EC8F5"; $("jobline").hidden=!job; if(job){ $("jobText").textContent="仕事: "+job.text; $("jobProg").textContent=jobProgress(job); }
   $("bSkill").hidden = sk(activeSkill().id)<=0; $("bSkillName").textContent=activeSkill().name.slice(0,4);
   $("intro").hidden=false; $("iFloor").textContent=floorName(f)+(mode==="boss"?" の主":""); $("iEq").textContent=cls().name+" / "+wep().name+" / "+arm().name; $("iCount").textContent=""; $("iCount").classList.remove("go");
   if(mode==="hunt"&&(!pendingJob||pendingJob.floor!==f)){ pendingJob=makeJob(f); pendingJob.floor=f; }
   const job = mode==="hunt" ? Object.assign({},pendingJob,{prog:pendingJob.t==="safe"?1:0,failed:false,done:false}) : null;
   G={t:RUN_TIME, mode, floor:f, sc, cls:S.cls, intro:4.2, ending:null, eliteT:[28,48], job, before:{lv:S.lv,xp:S.xp}, p:{x:ARENA/2,y:ARENA/2,r:14,hp:maxHp(),mhp:maxHp(),face:0,atkCd:0,dodgeCd:0,skCd:0,skMax:1,dash:0,inv:0,swing:0,spin:0,heal:0},
      enemies:[], loot:[], parts:[], beams:[], shots:[], dmgs:[], waves:[], spawnT:0.5, boss:null, bossSpawned:false, kills:0, got:{slime:0,wing:0,horn:0,token:0}, gold:0, pots:S.potions, gotPot:0, xp:0, cam:{x:0,y:0}, shake:0, hintT:3};
+  $("jobline").style.color="#7EC8F5"; $("jobline").hidden=!G.job; if(G.job){ $("jobText").textContent="仕事: "+G.job.text; $("jobProg").textContent=jobProgress(G.job); }
   running=true; last=performance.now(); requestAnimationFrame(loop);
 }
 function spawnEnemy(){
