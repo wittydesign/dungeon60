@@ -169,6 +169,12 @@ button[disabled]{opacity:.4;cursor:default;}
 .pin.cur i{background:var(--player);}
 .mapinfo{margin-top:10px;font-size:13px;color:var(--ink2);min-height:40px;}
 .mapinfo b{color:var(--ink);font-size:15px;}
+
+/* ---- optional UI art (assets/ui) ---- */
+.tab .ico.imgico::after{display:none;}
+body.panelimg .sheet{border-image:var(--panelimg) 120 fill / 40px stretch;background:transparent;border-width:40px;border-style:solid;border-radius:0;}
+body.btnimg button.big{background:var(--btngold) center/100% 100% no-repeat;border-radius:0;color:#14132A;}
+body.btnimg button.ghost{background:var(--btndark,none) center/100% 100% no-repeat;}
 </style>
 
 <div id="app">
@@ -883,8 +889,18 @@ function animateResult(kills, from, to, rows, lvup){
   animTimers.push(setTimeout(step,delay));
 }
 
-(function(){ const t=new Image(); t.onload=()=>{ const el=$("town"); el.style.backgroundImage="url(assets/plaza.jpg)"; el.classList.add("img"); }; t.src="assets/plaza.jpg";
-  const m=new Image(); m.onload=()=>{ $("map").style.backgroundImage="url(assets/map.jpg)"; }; m.src="assets/map.jpg"; })();
+(function(){
+  const tryImg=(url,cb)=>{ const im=new Image(); im.onload=()=>cb(url); im.onerror=()=>{}; im.src=url; };
+  tryImg("assets/plaza.jpg",u=>{ const el=$("town"); if(!el.dataset.bg){ el.style.backgroundImage="url("+u+")"; el.classList.add("img"); } });
+  tryImg("assets/ui/home_bg.png",u=>{ const el=$("town"); el.dataset.bg="1"; el.style.backgroundImage="url("+u+")"; el.classList.add("img"); });
+  tryImg("assets/map.jpg",u=>{ $("map").style.backgroundImage="url("+u+")"; });
+  tryImg("assets/ui/ui_gate.png",u=>{ const g=document.querySelector(".gatecore"); g.style.background="url("+u+") center/contain no-repeat"; g.style.border="0"; g.style.boxShadow="none"; });
+  for(const [id,f] of [["tabHome","ui_tab_home"],["tabShop","ui_tab_shop"],["tabItems","ui_tab_items"],["tabSet","ui_tab_settings"]]) tryImg("assets/ui/"+f+".png",u=>{ const ico=$(id).querySelector(".ico"); ico.classList.add("imgico"); ico.style.background="url("+u+") center/contain no-repeat"; ico.style.border="0"; });
+  tryImg("assets/ui/ui_topbar.png",u=>{ const tb=document.querySelector(".topbar"); tb.style.background="url("+u+") center/100% 100% no-repeat"; tb.style.borderBottom="0"; });
+  tryImg("assets/ui/ui_panel.png",u=>{ document.documentElement.style.setProperty("--panelimg","url("+u+")"); document.body.classList.add("panelimg"); });
+  tryImg("assets/ui/ui_btn_gold.png",u=>{ document.documentElement.style.setProperty("--btngold","url("+u+")"); document.body.classList.add("btnimg"); });
+  tryImg("assets/ui/ui_btn_dark.png",u=>{ document.documentElement.style.setProperty("--btndark","url("+u+")"); });
+})();
 renderHome();
 if(!S.seenTitle){ $("home").hidden=true; $("title").hidden=false; }
 else if(!S.picked){ $("home").hidden=true; drawPick(); $("pick").hidden=false; }
