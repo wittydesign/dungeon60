@@ -321,7 +321,8 @@ body.btnimg button.ghost{background:var(--btndark,none) center/100% 100% no-repe
       </div>
       <div class="card">
         <div class="row"><span>撃破数</span><span class="result-big" id="rKills">0</span></div>
-        <div class="rankrow" id="rRankRow" hidden><span class="rankbig" id="rRank">白</span><small id="rRankSub">素材 x1.0</small></div>
+        <div class="rankrow" id="rRankRow" hidden><span class="rankbig" id="rRank">白</span><small id="rRankSub">お金 x1.0</small></div>
+        <div id="rRare" hidden class="tag" style="font-size:14px;padding:6px 12px;background:linear-gradient(90deg,#ff5f5f,#f5c542,#7be495,#5eb0ff,#b58cff)"></div>
         <div class="row"><span>獲得経験値</span><span id="rXp" style="font-weight:800">+0</span></div>
         <div class="row"><span>獲得ゴールド</span><span class="gold" id="rGold">+0G</span></div>
         <div class="row" id="rJob" hidden style="flex-direction:column;align-items:flex-start;gap:2px"><span id="rJobText" style="font-size:13px;color:#7EC8F5"></span><b id="rJobRes"></b></div>
@@ -334,7 +335,7 @@ body.btnimg button.ghost{background:var(--btndark,none) center/100% 100% no-repe
         <div class="craftable" id="rCraftList"></div>
       </div>
       <div class="card">
-        <h2 style="margin-top:0">持ち帰った素材</h2>
+        <h2 style="margin-top:0">このステージで得たもの</h2>
         <div class="lootlist" id="rLoot"></div>
       </div>
       <button class="big" id="bAgain">もう一度</button>
@@ -423,6 +424,13 @@ const RANKS = [
   {n:"赤", need:55, mult:2.5, color:"#FF5F5F"},
   {n:"虹", need:70, mult:3.0, color:"rainbow"},
 ];
+// ステージ報酬: ランク(0-6)と奥の深さで、得られる素材の種類と数が決まる。敵は素材を落とさない
+// 白/青/黄/緑/紫/赤/虹。青=羽1、緑=羽3+傷薬2、虹=羽5+傷薬2+レア10%(ユーザー指定)
+const REWARD_BASE = { slime:[2,3,4,5,6,7,8], wing:[0,1,2,3,4,4,5], horn:[0,0,0,0,0,1,1], token:[0,0,0,0,1,1,1], potion:[0,0,1,2,2,2,2] };
+const RARE_CHANCE = 0.10;
+function stageReward(f, r){ const d=1+0.3*(f-1); const o={}; for(const k in REWARD_BASE){ const v=REWARD_BASE[k][r]; o[k]= (k==="token"||k==="potion"||k==="wing") ? v : Math.round(v*d); } if(r>=6)o.rare=RARE_CHANCE; return o; }
+function bossReward(f){ const d=1+0.3*(f-1); return {slime:Math.round(6*d), wing:Math.round(4*d), horn:2+Math.floor((f-1)/2), token:1, potion:0}; }
+const rewardText = o => { const parts=[]; for(const k of ["slime","wing","horn","token"]) if(o[k]) parts.push(MATS[k].name+" x"+o[k]); if(o.potion) parts.push("傷薬 x"+o.potion); if(o.rare) parts.push("レア装備 "+Math.round(o.rare*100)+"%"); return parts.join("、")||"なし"; };
 const rankOf = k => { let r=0; for(let i=0;i<RANKS.length;i++) if(k>=RANKS[i].need) r=i; return r; };
 const rankCss = r => RANKS[r].color==="rainbow" ? "linear-gradient(90deg,#ff5f5f,#f5c542,#7be495,#5eb0ff,#b58cff)" : RANKS[r].color;
 // ---------- sprites (optional PNGs under assets/; falls back to shapes) ----------
@@ -552,7 +560,7 @@ $("tabSet").onclick=()=>{ openSheet("shSet"); setTab("tabSet"); };
 $("goCraft").onclick=()=>openSheet("shCraft");
 $("goPotion").onclick=()=>openSheet("shShop");
 // ---- jobs (狩りの目的) ----
-const JOB_TYPES = ["kill","elite","mat","safe"];
+const JOB_TYPES = ["kill","elite","safe"];
 let pendingJob = null;
 function makeJob(f){
   const t=JOB_TYPES[Math.floor(Math.random()*JOB_TYPES.length)];
@@ -581,7 +589,8 @@ function renderMap(){
   const w=WORLD_INFO[0]; const deep=S.floor-1;
   if(!pendingJob||pendingJob.floor!==S.floor){ pendingJob=makeJob(S.floor); pendingJob.floor=S.floor; }
   const depthSel = '<div class="dest" style="margin:6px 0"><button class="ghost small" id="dDown" aria-label="手前へ">−</button><span style="font-size:15px">'+floorName(S.floor)+'</span><button class="ghost small" id="dUp" aria-label="奥へ">＋</button><span style="font-size:11px;color:var(--ink2)">到達 奥'+S.maxFloor+'</span></div>';
-  $("mapInfo").innerHTML='<b>'+w.n+'</b><br>住人: '+w.who+'<br>主: '+w.boss+depthSel+(deep>0?'奥ほど敵が強く、素材が多い<br>':'')+'<div style="margin-top:8px;padding:8px 10px;border-radius:10px;background:var(--panel2);color:var(--ink)"><b style="font-size:13px;color:#7EC8F5">今回の仕事(狩り)</b><br>「'+pendingJob.text+'」<br><span style="font-size:12px;color:var(--ink2)">達成で '+(60+20*S.floor)+'G と 依頼の証</span></div>';
+  $("mapInfo").innerHTML='<b>'+w.n+'</b><br>住人: '+w.who+'<br>主: '+w.boss+depthSel+(deep>0?'奥ほど敵が強く、素材が多い<br>':'')+'<div style="margin-top:8px;padding:8px 10px;border-radius:10px;background:var(--panel2);color:var(--ink)"><b style="font-size:13px;color:var(--gold)">このステージで得られるもの(狩り)</b><div style="font-size:12px;line-height:1.8;margin-top:4px">'+RANKS.map((rk,i)=>'<span class="rankpill'+(rk.color==="rainbow"?" rainbow":"")+'" style="font-size:11px;padding:0 8px;'+(rk.color==="rainbow"?"":"background:"+rk.color)+'">'+rk.n+'</span> '+rk.need+'体〜: '+rewardText(stageReward(S.floor,i))).join("<br>")+'</div><div style="font-size:12px;color:var(--ink2);margin-top:4px">討伐(主を倒す): '+rewardText(bossReward(S.floor))+'</div></div>'
+  +'<div style="margin-top:8px;padding:8px 10px;border-radius:10px;background:var(--panel2);color:var(--ink)"><b style="font-size:13px;color:#7EC8F5">今回の仕事(狩り)</b><br>「'+pendingJob.text+'」<br><span style="font-size:12px;color:var(--ink2)">達成で '+(60+20*S.floor)+'G と 依頼の証</span></div>';
   $("dDown").onclick=()=>{ if(S.floor>1){ S.floor--; save(); renderHome(); renderMap(); } };
   $("dUp").onclick=()=>{ if(S.floor<S.maxFloor){ S.floor++; save(); renderHome(); renderMap(); } else toast("主を倒すと奥が開く"); };
 }
@@ -659,10 +668,7 @@ function spawnBoss(){
 function dropLoot(e){
   const gv = e.type==="boss"?30+Math.floor(Math.random()*10):e.type==="elite"?8+Math.floor(Math.random()*5):1+Math.floor(Math.random()*3);
   G.loot.push({k:"gold", v:gv, x:e.x+(Math.random()-.5)*26, y:e.y+(Math.random()-.5)*26, t:0});
-  if(e.type!=="boss"&&Math.random()<POT_DROP) G.loot.push({k:"potion", x:e.x+(Math.random()-.5)*26, y:e.y+(Math.random()-.5)*26, t:0});
-  const n = e.type==="boss"?2:e.type==="elite"?4:(Math.random()<0.75?1:0)+(Math.random()<0.15?1:0);
-  for(let i=0;i<n;i++) G.loot.push({k:e.type==="boss"?"horn":e.type==="archer"?"wing":e.type==="elite"?(Math.random()<.5?"slime":"wing"):e.type, x:e.x+(Math.random()-.5)*30, y:e.y+(Math.random()-.5)*30, t:0});
-  if(e.type==="boss"){ for(let i=0;i<3;i++)G.loot.push({k:Math.random()<.5?"slime":"wing",x:e.x+(Math.random()-.5)*60,y:e.y+(Math.random()-.5)*60,t:0}); }
+
 }
 function burst(x,y,c,n){ for(let i=0;i<n;i++){ const a=Math.random()*Math.PI*2,s=40+Math.random()*120; G.parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,t:0.4+Math.random()*.3,c}); } }
 function hitEnemy(e,pow,ang,kb){ const crit=Math.random()<critRate(); if(crit)pow=Math.round(pow*1.5); e.hp-=pow; e.hit=0.12; if(e.type==="elite")kb*=0.3; G.dmgs.push({x:e.x+(Math.random()-.5)*12,y:e.y-e.r-6,v:pow,t:0.7,big:crit||pow>=atkPow()*1.5}); burst(e.x,e.y,e.type==="boss"?"#F04A5A":"#FFFFFF",4); const k=e.type==="boss"?Math.min(kb,4):kb; e.x+=Math.cos(ang)*k; e.y+=Math.sin(ang)*k; }
@@ -868,8 +874,13 @@ function endRun(reason){
   const canBefore = craftableIds();
   if(reason!=="dead") collectAll();
   else { for(const k in G.got)G.got[k]=Math.floor(G.got[k]/2); G.gold=Math.floor(G.gold/2); }
-  let rank=null;
-  if(G.mode==="hunt"&&reason!=="dead"){ const r=rankOf(G.kills); rank=RANKS[r]; if(rank.mult>1){ for(const k of ["slime","wing","horn"])G.got[k]=Math.round(G.got[k]*rank.mult); G.gold=Math.round(G.gold*rank.mult); } if(r>=3)G.got.token=(G.got.token||0)+1; if(r>=6){ G.got.token+=1; G.pots++; G.gotPot++; } }
+  let rank=null, reward=null, rareGot=null;
+  if(reason!=="dead"){
+    if(G.mode==="hunt"){ const r=rankOf(G.kills); rank=RANKS[r]; reward=stageReward(G.floor,r); G.gold=Math.round(G.gold*rank.mult); }
+    else if(reason==="boss"){ reward=bossReward(G.floor); }
+    if(reward){ for(const k of ["slime","wing","horn","token"]) G.got[k]=(G.got[k]||0)+reward[k]; if(reward.potion){ G.pots+=reward.potion; G.gotPot+=reward.potion; }
+      if(reward.rare&&Math.random()<reward.rare){ const pool=JOB_GEAR.filter(g=>!S.owned[g.id]); if(pool.length){ rareGot=pool[Math.floor(Math.random()*pool.length)]; S.owned[rareGot.id]=1; } else { G.got.token+=3; rareGot={name:"依頼の証 x3"}; } } }
+  }
   let jobOk=false, jobGold=0;
   if(G.job&&reason!=="dead"){ if(G.job.t==="safe"){ G.job.done=!G.job.failed; } if(G.job.done){ jobOk=true; jobGold=60+20*G.floor; G.gold+=jobGold; G.got.token=(G.got.token||0)+1; if(Math.random()<0.4){ G.pots++; G.gotPot++; } pendingJob=null; } }
   S.gold+=G.gold; S.potions=G.pots;
@@ -880,10 +891,11 @@ function endRun(reason){
   save();
   const bossMode = G.mode==="boss";
   $("rTag").textContent = reason==="boss"?"主を討伐":reason==="dead"?"押し戻された":bossMode?"主は逃げた":"ゲートが閉じた";
-  $("rTitle").textContent = reason==="boss"?floorName(G.floor)+" 制覇!":reason==="dead"?"素材を半分落とした":bossMode?"削り切れなかった":"帰還した";
-  $("rSub").textContent = reason==="boss"?"「"+floorName(G.floor+1)+"」が開いた。敵は強く、素材は多い。":reason==="dead"?"回避で距離を取ると楽になる。":bossMode?"装備とスキルを整えて、もう一度。":"狩った分だけ持ち帰った。精鋭を倒すと素材が多い。";
+  $("rTitle").textContent = reason==="boss"?floorName(G.floor)+" 制覇!":reason==="dead"?"報酬を受け取れなかった":bossMode?"削り切れなかった":"帰還した";
+  $("rSub").textContent = reason==="boss"?"「"+floorName(G.floor+1)+"」が開いた。敵は強く、素材は多い。":reason==="dead"?"押し戻されると報酬はなし。お金も半分になる。回避で距離を取ろう。":bossMode?"装備とスキルを整えて、もう一度。":"倒した数のランクで、得られるものが決まる。";
   $("rXp").textContent="+"+G.xp; $("rGold").textContent="+"+G.gold+"G";
-  $("rRankRow").hidden=!rank; if(rank){ const r=RANKS.indexOf(rank); const el=$("rRank"); el.textContent=rank.n+"ランク"; el.className="rankbig"+(rank.color==="rainbow"?" rainbow":""); el.style.background=rank.color==="rainbow"?"":rank.color; const nxt=RANKS[r+1]; $("rRankSub").textContent="素材とお金 x"+rank.mult.toFixed(1)+(r>=3?" +依頼の証":"")+(nxt?"  / 次の"+nxt.n+"まで あと"+(nxt.need-G.kills)+"体":""); }
+  $("rRankRow").hidden=!rank; if(rank){ const r=RANKS.indexOf(rank); const el=$("rRank"); el.textContent=rank.n+"ランク"; el.className="rankbig"+(rank.color==="rainbow"?" rainbow":""); el.style.background=rank.color==="rainbow"?"":rank.color; const nxt=RANKS[r+1]; $("rRankSub").textContent="お金 x"+rank.mult.toFixed(1)+(nxt?"  / 次の"+nxt.n+"まで あと"+(nxt.need-G.kills)+"体":""); }
+  $("rRare").hidden=!rareGot; if(rareGot)$("rRare").textContent="レア! "+rareGot.name+"を手に入れた";
   $("rJob").hidden=!G.job; if(G.job){ $("rJobText").textContent="仕事「"+G.job.text+"」"; $("rJobRes").textContent= jobOk?"達成! +"+jobGold+"G、依頼の証":"未達成"; $("rJobRes").style.color=jobOk?"#7BE495":"var(--ink2)"; } $("rPotRow").hidden=G.gotPot===0; $("rPot").textContent="+"+G.gotPot;
   $("rLvup").hidden = true; $("rLvText").textContent="Lv "+before+" → Lv "+S.lv; $("rSp").textContent="SP +"+((S.lv-before)*SP_PER_LV);
   const ll=$("rLoot"); ll.innerHTML=""; const rows=[];
