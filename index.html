@@ -58,7 +58,7 @@ button[disabled]{opacity:.4;cursor:default;}
 .rankrow small{color:var(--ink2);font-size:12px;}
 #timer{font-size:28px;}
 #timer.hurry{color:var(--boss);}
-.ctrl{position:absolute;right:16px;bottom:calc(20px + 0px);display:flex;gap:12px;align-items:flex-end;}
+.ctrl{position:absolute;right:var(--lt-ctrlRight);bottom:var(--lt-ctrlBottom);display:flex;gap:12px;align-items:flex-end;}
 .btn{width:76px;height:76px;border-radius:50%;background:var(--player);color:var(--ground);font-weight:800;font-size:15px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 4px rgba(94,234,212,.25);}
 .btn.dodge{width:60px;height:60px;background:var(--heal);box-shadow:0 0 0 4px rgba(123,228,149,.25);margin-bottom:40px;}
 .btn.cool{opacity:.45;}
@@ -113,7 +113,10 @@ button[disabled]{opacity:.4;cursor:default;}
 .cls button{display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 8px;border:2px solid transparent;}
 .cls button small{font-weight:500;font-size:11px;color:var(--ink2);}
 .cls button.on{border-color:var(--gold);background:var(--panel2);}
-:root{--mage:#B58CFF;}
+:root{--mage:#B58CFF;
+  --lt-topPad:15%; --lt-topLift:12px; --lt-tabIcon:74px; --lt-gate:112px; --lt-tabLift:0px;
+  --lt-meScale:1; --lt-meBottom:12%; --lt-panelPadY:46px; --lt-panelPadX:40px;
+  --lt-atk:92px; --lt-btn:70px; --lt-ctrlRight:16px; --lt-ctrlBottom:20px; --lt-fontScale:1;}
 @media (prefers-reduced-motion: reduce){ .toast{transition:none;} .bar i{transition:none;} }
 
 /* ---- plaza (TOP) ---- */
@@ -162,7 +165,7 @@ button[disabled]{opacity:.4;cursor:default;}
 .hot .house.craft{background:#9A7B58;} .hot .house.craft::before{background:#5B3A2A;}
 .hot .house.shop{background:#7FB08A;} .hot .house.shop::before{background:#3E6E4A;}
 .hot .house.board{width:56px;height:40px;background:#D9C9A0;border:4px solid #7A5A3A;} .hot .house.board::before{display:none;}
-.hot.me{left:50%;bottom:7%;transform:translateX(-50%);}
+.hot.me{left:50%;bottom:var(--lt-meBottom);transform:translateX(-50%) scale(var(--lt-meScale));transform-origin:50% 100%;}
 .hot.me canvas{width:198px;height:192px;filter:drop-shadow(0 6px 6px rgba(0,0,0,.4));}
 .bottombar{padding:10px 16px;padding-bottom:calc(12px + 0px);background:var(--panel);border-top:1px solid var(--line);display:flex;flex-direction:column;gap:8px;}
 .dest{display:flex;align-items:center;justify-content:center;gap:12px;}
@@ -191,15 +194,15 @@ button[disabled]{opacity:.4;cursor:default;}
 .bar.imgframe{background-size:100% 100%!important;background-repeat:no-repeat;height:16px;padding:4px 10px;box-sizing:border-box;border-radius:0;background-color:transparent!important;}
 .bar.imgframe i{border-radius:999px;}
 .rankpill.rankframe{background:var(--rankimg) center/100% 100% no-repeat!important;padding:4px 16px;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.7);}
-.btn.imgbtn{width:70px;height:70px;}
-#bAtk.imgbtn{width:92px;height:92px;}
+.btn.imgbtn{width:var(--lt-btn);height:var(--lt-btn);}
+#bAtk.imgbtn{width:var(--lt-atk);height:var(--lt-atk);}
 .btn.imgbtn.dodge,.btn.imgbtn.skill{margin-bottom:44px;}
 .btn.imgbtn.pot{margin-bottom:8px;}
 /* ---- text-baked UI ---- */
 .tab.txtimg .ico,.tab.txtimg .gatecore,.tab.txtimg .gatelbl{display:none!important;}
-.tab.txtimg{color:transparent!important;font-size:0;width:74px;height:74px;background:var(--off) center/contain no-repeat;min-width:74px;padding:0;}
+.tab.txtimg{color:transparent!important;font-size:0;width:var(--lt-tabIcon);height:var(--lt-tabIcon);background:var(--off) center/contain no-repeat;min-width:var(--lt-tabIcon);padding:0;transform:translateY(var(--lt-tabLift));}
 .tab.txtimg.on{background-image:var(--on);}
-.tab.txtimg.gatebtn{width:112px;height:112px;margin-top:-40px;}
+.tab.txtimg.gatebtn{width:var(--lt-gate);height:var(--lt-gate);margin-top:calc(var(--lt-gate) * -0.36);}
 button.txtbtn{color:transparent!important;text-shadow:none!important;background-size:100% 100%!important;background-repeat:no-repeat!important;background-color:transparent!important;border-radius:0!important;min-height:52px;}
 button.txtbtn small{display:none;}
 .sheethead h2.txtrib{color:transparent!important;text-shadow:none!important;background-size:100% 100%!important;background-repeat:no-repeat!important;min-width:150px;height:34px;padding:0!important;}
@@ -209,9 +212,9 @@ body.txtui .cbtn[data-tb="equip"]{color:transparent!important;background:var(--t
 body.txtui .cbtn[data-tb="equipped"]{color:transparent!important;background:var(--tb-equipped,none) center/100% 100% no-repeat!important;min-width:76px;height:30px;opacity:1;}
 body.txtui #bBuyPot{color:transparent!important;background:var(--tb-buy,none) center/100% 100% no-repeat!important;min-width:76px;height:30px;}
 /* ---- optional UI art (assets/ui) ---- */
-.topbar.img{position:relative;padding-left:15%;padding-right:15%;padding-bottom:0;align-items:center;background:#14132A;}
+.topbar.img{position:relative;padding-left:var(--lt-topPad);padding-right:var(--lt-topPad);padding-bottom:0;align-items:center;background:#14132A;}
 .topbar.img::before{content:"";position:absolute;left:0;right:0;bottom:0;height:auto;aspect-ratio:4.5;background:var(--topbarimg) center/100% 100% no-repeat;pointer-events:none;}
-.topbar.img .tb-left,.topbar.img .tb-right{position:relative;z-index:1;height:calc(390px * 0.222);display:flex;align-items:center;padding-bottom:calc(390px * 0.03);box-sizing:border-box;}
+.topbar.img .tb-left,.topbar.img .tb-right{position:relative;z-index:1;height:calc(390px * 0.222);display:flex;align-items:center;padding-bottom:var(--lt-topLift);box-sizing:border-box;}
 .topbar.img .tb-left{flex-direction:column;align-items:flex-start;justify-content:center;min-width:0;flex:1;}
 .topbar.img .tb-lv{font-size:13px;white-space:nowrap;}
 .topbar.img .tb-xp{width:100%;max-width:150px;}
@@ -223,7 +226,7 @@ body.txtui #bBuyPot{color:transparent!important;background:var(--tb-buy,none) ce
 /* the sheet itself never scrolls; .sheetbody scrolls inside, and the frame is an overlay pinned to the sheet box */
 .sheet{display:flex;flex-direction:column;overflow:hidden;}
 .sheetbody{overflow-y:auto;min-height:0;flex:1;}
-body.panelimg .sheet{background:#151433;border:0;border-radius:18px 18px 0 0;padding:46px 40px 46px 40px;padding-bottom:calc(50px + 0px);box-shadow:none;}
+body.panelimg .sheet{background:#151433;border:0;border-radius:18px 18px 0 0;padding:var(--lt-panelPadY) var(--lt-panelPadX);box-shadow:none;}
 .sheet{box-sizing:border-box;}
 .sheetframe{display:none;}
 body.panelimg .sheetframe{display:block;position:absolute;left:0;top:0;right:0;bottom:0;border:40px solid transparent;border-image:var(--panelimg) 62 fill / 40px stretch;pointer-events:none;z-index:0;}
@@ -259,6 +262,10 @@ html,body{overflow:hidden;background:#0B0A18;}
   </div>
   <div class="hint" id="hint" hidden>左側をなぞって移動。白く光った敵は攻撃の合図</div>
   <div class="toast" id="toast"></div>
+  <div id="ltPanel" hidden style="position:absolute;left:8px;right:8px;top:70px;z-index:50;background:rgba(20,19,42,.94);border:1px solid var(--gold);border-radius:12px;padding:10px 12px;font-size:12px;max-height:60%;overflow-y:auto">
+    <div class="row" style="margin-bottom:6px"><b>レイアウト調整</b><div style="display:flex;gap:6px"><button class="ghost small" id="ltCopy2">コード</button><button class="ghost small" id="ltClose">閉じる</button></div></div>
+    <div id="ltRows"></div>
+  </div>
   <div class="overlay" id="intro" hidden><div class="floor" id="iFloor">1F</div><div class="eq" id="iEq"></div><div class="count" id="iCount"></div></div>
   <div class="overlay" id="endflash" hidden><div class="flash" id="efText"></div></div>
 
@@ -326,6 +333,9 @@ html,body{overflow:hidden;background:#0B0A18;}
       <div class="sheethead"><h2>設定</h2><button class="ghost small closeSheet">閉じる</button></div>
       <div class="row" style="margin-bottom:10px"><span>見た目</span><button class="ghost small" id="hBody">見た目: A</button></div>
       <div class="row" style="margin-bottom:10px"><span>職業: <b id="hCls2">剣士</b></span><button class="ghost small" id="bJob">転職(準備中)</button></div>
+      <h2 style="font-size:15px;margin-top:16px">レイアウト調整</h2>
+      <p class="sub" style="margin-bottom:6px">スライダーで見た目を直接動かせる。値はこの端末に保存される。「調整コードをコピー」で送ってもらえれば、初期値に焼き込む。</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px"><button class="ghost small" id="ltOpen">調整パネルを開く</button><button class="ghost small" id="ltCopy">調整コードをコピー</button><button class="ghost small" id="ltReset">リセット</button></div>
       <h2 style="font-size:15px;margin-top:16px">セーブコード</h2>
       <p class="sub" style="margin-bottom:8px">キャラが消えたときの保険。コピーしてメモに貼っておく。</p>
       <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="ghost small" id="bSaveCopy">セーブコードをコピー</button><button class="ghost small" id="bSaveShow">表示</button><button class="ghost small" id="bSaveLoad">貼って復元</button></div>
@@ -596,6 +606,33 @@ function renderHome(){
 }
 $("bBuyPot").onclick=()=>{ if(S.gold<POT_PRICE)return; S.gold-=POT_PRICE; S.potions++; save(); renderHome(); toast("傷薬を買った"); };
 $("bJob").onclick=()=>toast("転職チケットは準備中");
+// ---- layout editor: CSS variables the user can tune on device ----
+const LT_DEFS = [
+  ["topPad","上の枠: 文字の左右余白",8,22,"%",0.5],["topLift","上の枠: 文字を上へ",0,30,"px",1],
+  ["tabIcon","タブ: アイコンの大きさ",50,100,"px",1],["gate","タブ: ゲートの大きさ",80,150,"px",1],["tabLift","タブ: 上下(マイナスで上)",-20,20,"px",1],
+  ["meScale","キャラ: 大きさ",0.6,1.6,"",0.05],["meBottom","キャラ: 下からの位置",2,30,"%",0.5],
+  ["panelPadY","パネル: 上下の余白",20,80,"px",1],["panelPadX","パネル: 左右の余白",16,70,"px",1],
+  ["atk","戦闘: 攻撃ボタン",60,130,"px",1],["btn","戦闘: 他のボタン",44,100,"px",1],["ctrlRight","戦闘: 右の余白",0,60,"px",1],["ctrlBottom","戦闘: 下の余白",0,80,"px",1],
+];
+const LT_KEY="dgn60_layout_v1";
+function ltDefaults(){ const d={}; for(const [k] of LT_DEFS){ d[k]=getComputedStyle(document.documentElement).getPropertyValue("--lt-"+k).trim(); } return d; }
+let ltBase=null, lt={};
+function ltApply(){ for(const k in lt){ document.documentElement.style.setProperty("--lt-"+k, lt[k]); } }
+function ltLoad(){ try{ lt=JSON.parse(localStorage.getItem(LT_KEY))||{}; }catch(e){ lt={}; } ltApply(); }
+function ltSave(){ try{ localStorage.setItem(LT_KEY,JSON.stringify(lt)); }catch(e){} }
+function ltCode(){ return "LT:"+btoa(unescape(encodeURIComponent(JSON.stringify(lt)))); }
+function ltRender(){ if(!ltBase)ltBase=ltDefaults(); const box=$("ltRows"); box.innerHTML="";
+  for(const [k,label,min,max,unit,step] of LT_DEFS){ const cur=parseFloat((lt[k]||ltBase[k]||"0")); const row=document.createElement("div"); row.style.cssText="display:flex;align-items:center;gap:8px;margin:4px 0";
+    row.innerHTML='<span style="flex:1">'+label+'</span><input type="range" min="'+min+'" max="'+max+'" step="'+step+'" value="'+cur+'" style="width:130px"><b style="min-width:44px;text-align:right">'+cur+unit+'</b>';
+    const inp=row.querySelector("input"), val=row.querySelector("b");
+    inp.oninput=()=>{ lt[k]=inp.value+unit; val.textContent=inp.value+unit; ltApply(); ltSave(); if(k.startsWith("me"))renderAvatar(); };
+    box.appendChild(row); } }
+$("ltOpen").onclick=()=>{ closeSheets(); ltRender(); $("ltPanel").hidden=false; };
+$("ltClose").onclick=()=>{ $("ltPanel").hidden=true; };
+const ltCopyFn=async()=>{ const c=ltCode(); try{ await navigator.clipboard.writeText(c); toast("調整コードをコピーした"); }catch(e){ $("saveBox").value=c; toast("設定の欄に出した。長押しでコピー"); } };
+$("ltCopy").onclick=ltCopyFn; $("ltCopy2").onclick=ltCopyFn;
+$("ltReset").onclick=()=>{ lt={}; ltSave(); for(const [k] of LT_DEFS)document.documentElement.style.removeProperty("--lt-"+k); ltRender(); renderAvatar(); toast("リセットした"); };
+ltLoad();
 // ---- save code (export/import) ----
 function saveCode(){ return "D60:"+btoa(unescape(encodeURIComponent(JSON.stringify(S)))); }
 function loadCode(t){ t=(t||"").trim(); if(!t.startsWith("D60:"))throw new Error("形式が違う"); const j=JSON.parse(decodeURIComponent(escape(atob(t.slice(4))))); if(!j||!j.lv)throw new Error("中身が違う"); S=Object.assign(def(),j); save(); }
