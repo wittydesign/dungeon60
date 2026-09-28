@@ -116,7 +116,8 @@ button[disabled]{opacity:.4;cursor:default;}
 :root{--mage:#B58CFF;
   --lt-topPad:12.5%; --lt-topLift:10px; --lt-tabIcon:70px; --lt-gate:101px; --lt-tabLift:7px;
   --lt-meScale:1; --lt-meBottom:22.5%; --lt-panelPadY:46px; --lt-panelPadX:40px;
-  --lt-atk:92px; --lt-btn:70px; --lt-ctrlRight:16px; --lt-ctrlBottom:20px; --lt-fontScale:1;}
+  --lt-atk:92px; --lt-btn:70px; --lt-ctrlRight:16px; --lt-ctrlBottom:20px; --lt-fontScale:1;
+  --lt-bgZoom:1; --lt-bgPosX:50%; --lt-bgPosY:38%; --lt-mapZoom:1; --lt-mapPosY:50%; --lt-tile:110px;}
 @media (prefers-reduced-motion: reduce){ .toast{transition:none;} .bar i{transition:none;} }
 
 /* ---- plaza (TOP) ---- */
@@ -144,7 +145,8 @@ button[disabled]{opacity:.4;cursor:default;}
 .plaza{padding:0!important;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;overflow:hidden;}
 .town{width:100%;min-height:0;}
 .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 16px;padding-top:calc(10px + 0px);font-size:14px;font-weight:800;background:var(--panel);border-bottom:1px solid var(--line);}
-.town{position:relative;flex:1;overflow:hidden;background:#2F6B4A;background-size:cover;background-position:center 38%;}
+.town{position:relative;flex:1;overflow:hidden;background:#2F6B4A;background-size:calc(100% * var(--lt-bgZoom)) auto;background-position:var(--lt-bgPosX) var(--lt-bgPosY);background-repeat:no-repeat;}
+.town.img{background-size:calc(100% * var(--lt-bgZoom)) auto;}
 .town.img .sky,.town.img .ground,.town.img .house,.town.img .ring{display:none;}
 .town.img .hot .lbl{background:rgba(20,19,42,.8);}
 .town .sky{position:absolute;left:0;right:0;top:0;height:38%;background:linear-gradient(#7EC8F5,#BFE6FA);}
@@ -173,7 +175,7 @@ button[disabled]{opacity:.4;cursor:default;}
 .sheet{position:absolute;left:0;right:0;bottom:0;max-height:88%;overflow-y:auto;background:var(--panel);border-top:1px solid var(--line);border-radius:18px 18px 0 0;padding:14px 16px;padding-bottom:calc(20px + 0px);box-shadow:0 -10px 40px rgba(0,0,0,.5);}
 .sheethead{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
 .sheethead h2{margin:0;}
-.map{position:relative;width:100%;aspect-ratio:3/4;max-width:100%;border-radius:12px;background:linear-gradient(160deg,#5E9A55 0%,#8FB0A0 35%,#C9B688 60%,#7A4A3A 100%);background-size:cover;background-position:center;overflow:hidden;}
+.map{position:relative;width:100%;aspect-ratio:3/4;max-width:100%;border-radius:12px;background:linear-gradient(160deg,#5E9A55 0%,#8FB0A0 35%,#C9B688 60%,#7A4A3A 100%);background-size:calc(100% * var(--lt-mapZoom)) auto;background-position:center var(--lt-mapPosY);background-repeat:no-repeat;overflow:hidden;}
 .pin{position:absolute;transform:translate(-50%,-50%);background:none;border:0;padding:0;color:var(--ink);display:flex;flex-direction:column;align-items:center;gap:2px;font:inherit;font-weight:800;cursor:pointer;}
 .pin i{width:22px;height:22px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--gold);border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.4);}
 .pin span{font-size:11px;background:rgba(20,19,42,.75);padding:2px 7px;border-radius:999px;white-space:nowrap;}
@@ -612,12 +614,15 @@ const LT_DEFS = [
   ["tabIcon","タブ: アイコンの大きさ",50,100,"px",1],["gate","タブ: ゲートの大きさ",80,150,"px",1],["tabLift","タブ: 上下(マイナスで上)",-20,20,"px",1],
   ["meScale","キャラ: 大きさ",0.6,1.6,"",0.05],["meBottom","キャラ: 下からの位置",2,30,"%",0.5],
   ["panelPadY","パネル: 上下の余白",20,80,"px",1],["panelPadX","パネル: 左右の余白",16,70,"px",1],
+  ["bgZoom","ホーム背景: 拡大",1,2,"",0.02],["bgPosX","ホーム背景: 横位置",0,100,"%",1],["bgPosY","ホーム背景: 縦位置",0,100,"%",1],
+  ["mapZoom","地図: 拡大",1,2,"",0.02],["mapPosY","地図: 縦位置",0,100,"%",1],["tile","戦闘の床: タイルの大きさ",50,220,"px",2],
   ["atk","戦闘: 攻撃ボタン",60,130,"px",1],["btn","戦闘: 他のボタン",44,100,"px",1],["ctrlRight","戦闘: 右の余白",0,60,"px",1],["ctrlBottom","戦闘: 下の余白",0,80,"px",1],
 ];
 const LT_KEY="dgn60_layout_v1";
 function ltDefaults(){ const d={}; for(const [k] of LT_DEFS){ d[k]=getComputedStyle(document.documentElement).getPropertyValue("--lt-"+k).trim(); } return d; }
 let ltBase=null, lt={};
-function ltApply(){ for(const k in lt){ document.documentElement.style.setProperty("--lt-"+k, lt[k]); } }
+let tileSize=110;
+function ltApply(){ for(const k in lt){ document.documentElement.style.setProperty("--lt-"+k, lt[k]); } tileSize=parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--lt-tile"))||110; }
 function ltLoad(){ try{ lt=JSON.parse(localStorage.getItem(LT_KEY))||{}; }catch(e){ lt={}; } ltApply(); }
 function ltSave(){ try{ localStorage.setItem(LT_KEY,JSON.stringify(lt)); }catch(e){} }
 function ltCode(){ return "LT:"+btoa(unescape(encodeURIComponent(JSON.stringify(lt)))); }
@@ -908,7 +913,7 @@ function draw(){
   const cx=Math.max(W/2,Math.min(ARENA-W/2,p.x)), cy=Math.max(H/2,Math.min(ARENA-H/2,p.y));
   const sx=(Math.random()-.5)*G.shake, sy=(Math.random()-.5)*G.shake;
   ctx.save(); ctx.translate(W/2-cx+sx,H/2-cy+sy);
-  if(SPR.tile_moss){ if(!G.pat){ G.pat=ctx.createPattern(SPR.tile_moss,"repeat"); } const ts=110/SPR.tile_moss.width; ctx.save(); ctx.imageSmoothingEnabled=true; ctx.fillStyle=G.pat; ctx.scale(ts,ts); ctx.fillRect(0,0,ARENA/ts,ARENA/ts); ctx.restore(); }
+  if(SPR.tile_moss){ if(!G.pat){ G.pat=ctx.createPattern(SPR.tile_moss,"repeat"); } const ts=tileSize/SPR.tile_moss.width; ctx.save(); ctx.imageSmoothingEnabled=true; ctx.fillStyle=G.pat; ctx.scale(ts,ts); ctx.fillRect(0,0,ARENA/ts,ARENA/ts); ctx.restore(); }
   else { ctx.fillStyle="#232140"; ctx.fillRect(0,0,ARENA,ARENA);
     ctx.strokeStyle="#2C2A4A"; ctx.lineWidth=1; for(let g=0;g<=ARENA;g+=60){ ctx.beginPath();ctx.moveTo(g,0);ctx.lineTo(g,ARENA);ctx.stroke(); ctx.beginPath();ctx.moveTo(0,g);ctx.lineTo(ARENA,g);ctx.stroke(); } }
   if(SPR.wall_moss){ if(!G.wpat){ G.wpat=ctx.createPattern(SPR.wall_moss,"repeat"); } const ws=44/SPR.wall_moss.width; ctx.save(); ctx.fillStyle=G.wpat; ctx.scale(ws,ws); const T=ARENA/ws, w=SPR.wall_moss.width; ctx.fillRect(0,0,T,w); ctx.fillRect(0,T-w,T,w); ctx.fillRect(0,0,w,T); ctx.fillRect(T-w,0,w,T); ctx.restore(); }
